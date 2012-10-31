@@ -307,39 +307,32 @@ typedef enum _SelectorInferredImplType {
         return NO;
     }
     
-    @try {
-        // fetch methods of the protocol and confirm that each can be implemented automatically
-        methods = protocol_copyMethodDescriptionList(protocol, 
-                                                     YES,   // required
-                                                     YES,   // instance
-                                                     &count);
-        for (int index = 0; index < count; index++) {
-            if ([FBGraphObject inferredImplTypeForSelector:methods[index].name] == SelectorInferredImplTypeNone) {
-                // we have a bad actor, short circuit
-                return NO;
-            }
+    // fetch methods of the protocol and confirm that each can be implemented automatically
+    methods = protocol_copyMethodDescriptionList(protocol, 
+                                                 YES,   // required
+                                                 YES,   // instance
+                                                 &count);
+    for (int index = 0; index < count; index++) {
+        if ([FBGraphObject inferredImplTypeForSelector:methods[index].name] == SelectorInferredImplTypeNone) {
+            // we have a bad actor, short circuit
+            return NO;
         }
-    } @finally {
-        if (methods) {
-            free(methods);
-        }   
     }
+    if (methods) {
+        free(methods);
+    }   
     
     // fetch adopted protocols
-    Protocol *__unsafe_unretained *adopted = nil;
-    @try { 
-        adopted = protocol_copyProtocolList(protocol, &count);
-        for (int index = 0; index < count; index++) {
-            // here we go again...
-            if (![FBGraphObject isProtocolImplementationInferable:adopted[index] 
-                                       checkFBGraphObjectAdoption:NO]) {
-                return NO;
-            }
+    Protocol *__unsafe_unretained *adopted = protocol_copyProtocolList(protocol, &count);
+    for (int index = 0; index < count; index++) {
+        // here we go again...
+        if (![FBGraphObject isProtocolImplementationInferable:adopted[index] 
+                                   checkFBGraphObjectAdoption:NO]) {
+            return NO;
         }
-    } @finally {
-        if (adopted) {
-            free(adopted);
-        }
+    }
+    if (adopted) {
+        free(adopted);
     }
     
     // protocol ran the gauntlet

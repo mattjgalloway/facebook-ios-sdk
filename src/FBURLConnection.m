@@ -179,12 +179,7 @@ static NSArray* _cdnHosts;
     // else.
     FBURLConnectionHandler handler = self.handler;
     self.handler = nil;
-    @try {
-        [self invokeHandler:handler error:error response:nil responseData:nil];
-    } @finally {
-        handler = nil;
-        error = nil;
-    }
+    [self invokeHandler:handler error:error response:nil responseData:nil];
 }
 
 - (void)connection:(NSURLConnection *)connection
@@ -203,11 +198,8 @@ didReceiveResponse:(NSURLResponse *)response
 - (void)connection:(NSURLConnection *)connection
   didFailWithError:(NSError *)error
 {
-    @try {
-        [self invokeHandler:self.handler error:error response:nil responseData:nil];
-    } @finally {
-        self.handler = nil;
-    }
+    [self invokeHandler:self.handler error:error response:nil responseData:nil];
+    self.handler = nil;
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
@@ -218,11 +210,8 @@ didReceiveResponse:(NSURLResponse *)response
         [[FBDataDiskCache sharedCache] setData:self.data forURL:dataURL];
     }
 
-    @try {
-        [self invokeHandler:self.handler error:nil response:self.response responseData:self.data];
-    } @finally {
-        self.handler = nil;
-    }
+    [self invokeHandler:self.handler error:nil response:self.response responseData:self.data];
+    self.handler = nil;
 }
 
 -(NSURLRequest *)connection:(NSURLConnection *)connection
@@ -236,17 +225,14 @@ didReceiveResponse:(NSURLResponse *)response
         NSData* cachedData = 
             [[FBDataDiskCache sharedCache] dataForURL:redirectURL];
         if (cachedData) {
-            @try {
-                // Fake a response
-                NSURLResponse* cacheResponse = 
-                    [[NSURLResponse alloc] initWithURL:redirectURL
-                        MIMEType:@"application/octet-stream" 
-                        expectedContentLength:cachedData.length 
-                        textEncodingName:@"utf8"];
-                [self invokeHandler:self.handler error:nil response:cacheResponse responseData:cachedData];
-            } @finally {
-                self.handler = nil;
-            }
+            // Fake a response
+            NSURLResponse* cacheResponse = 
+                [[NSURLResponse alloc] initWithURL:redirectURL
+                    MIMEType:@"application/octet-stream" 
+                    expectedContentLength:cachedData.length 
+                    textEncodingName:@"utf8"];
+            [self invokeHandler:self.handler error:nil response:cacheResponse responseData:cachedData];
+            self.handler = nil;
 
             return nil;
         }

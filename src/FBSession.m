@@ -1437,16 +1437,13 @@ static FBSession *g_activeSession = nil;
     // if we have a handler, call it and release our
     // final retain on the handler
     if (handler) {
-        @try {
-            // unsuccessful transitions don't change state and don't propagate the error object
-            handler(self,
-                    self.state,
-                    didTransition ? error : nil);
-        }
-        @finally {
-            // now release our stack reference
-            handler = nil;
-        }
+        // unsuccessful transitions don't change state and don't propagate the error object
+        handler(self,
+                self.state,
+                didTransition ? error : nil);
+        
+        // now release our stack reference
+        handler = nil;
     }
 }
 

@@ -74,84 +74,72 @@ static dispatch_once_t g_publishInstallOnceToken;
 #pragma mark proto-activity publishing code
 
 + (void)publishInstall:(NSString *)appID {
-    @try {
-        if (!appID) {
-            appID = [FBSession defaultAppID];
-        }
+    if (!appID) {
+        appID = [FBSession defaultAppID];
+    }
 
-        if (!appID) {
-            // if the appID is still nil, exit early.
-            return;
-        }
+    if (!appID) {
+        // if the appID is still nil, exit early.
+        return;
+    }
 
-        // look for a previous ping & grab the facebook app's current attribution id.
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        NSString *pingKey = [NSString stringWithFormat:FBLastAttributionPing, appID, nil];
-        NSDate *lastPing = [defaults objectForKey:pingKey];
-        NSString *attributionID = [[UIPasteboard pasteboardWithName:FBAttributionPasteboard create:NO] string];
-  
-        NSString *advertiserID = nil;
-        if ([ASIdentifierManager class]) {
-            ASIdentifierManager *manager = [ASIdentifierManager sharedManager];
-            advertiserID = [[manager advertisingIdentifier] UUIDString];
-        }
-  
-        if ((attributionID || advertiserID) && !lastPing) {
-            FBRequestHandler publishCompletionBlock = ^(FBRequestConnection *connection,
-                                                        id result,
-                                                        NSError *error) {
-                @try {
-                    if (!error) {
-                        // if server communication was successful, take note of the current time.
-                        [defaults setObject:[NSDate date] forKey:pingKey];
-                        [defaults synchronize];
-                    } else {
-                        // there was a problem.  allow a repeat execution.
-                        g_publishInstallOnceToken = 0;
+    // look for a previous ping & grab the facebook app's current attribution id.
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSString *pingKey = [NSString stringWithFormat:FBLastAttributionPing, appID, nil];
+    NSDate *lastPing = [defaults objectForKey:pingKey];
+    NSString *attributionID = [[UIPasteboard pasteboardWithName:FBAttributionPasteboard create:NO] string];
+
+    NSString *advertiserID = nil;
+    if ([ASIdentifierManager class]) {
+        ASIdentifierManager *manager = [ASIdentifierManager sharedManager];
+        advertiserID = [[manager advertisingIdentifier] UUIDString];
+    }
+
+    if ((attributionID || advertiserID) && !lastPing) {
+        FBRequestHandler publishCompletionBlock = ^(FBRequestConnection *connection,
+                                                    id result,
+                                                    NSError *error) {
+            if (!error) {
+                // if server communication was successful, take note of the current time.
+                [defaults setObject:[NSDate date] forKey:pingKey];
+                [defaults synchronize];
+            } else {
+                // there was a problem.  allow a repeat execution.
+                g_publishInstallOnceToken = 0;
+            }
+        };
+
+        FBRequestHandler pingCompletionBlock = ^(FBRequestConnection *connection,
+                                                 id result,
+                                                 NSError *error) {
+            if (!error) {
+                if ([result respondsToSelector:@selector(objectForKey:)] &&
+                    [[result objectForKey:FBSupportsAttribution] boolValue]) {
+                    // set up the HTTP POST to publish the attribution ID.
+                    NSString *publishPath = [NSString stringWithFormat:FBPublishActivityPath, appID, nil];
+                    NSMutableDictionary<FBGraphObject> *installActivity = [FBGraphObject graphObject];
+                    [installActivity setObject:FBMobileInstallEvent forKey:@"event"];
+          
+                    if (attributionID) {
+                        [installActivity setObject:attributionID forKey:@"attribution"];
                     }
-                } @catch (NSException *ex1) {
-                    NSLog(@"Failure after install publish: %@", ex1.reason);
-                }
-            };
-
-            FBRequestHandler pingCompletionBlock = ^(FBRequestConnection *connection,
-                                                     id result,
-                                                     NSError *error) {
-                if (!error) {
-                    @try {
-                        if ([result respondsToSelector:@selector(objectForKey:)] &&
-                            [[result objectForKey:FBSupportsAttribution] boolValue]) {
-                            // set up the HTTP POST to publish the attribution ID.
-                            NSString *publishPath = [NSString stringWithFormat:FBPublishActivityPath, appID, nil];
-                            NSMutableDictionary<FBGraphObject> *installActivity = [FBGraphObject graphObject];
-                            [installActivity setObject:FBMobileInstallEvent forKey:@"event"];
-                  
-                            if (attributionID) {
-                                [installActivity setObject:attributionID forKey:@"attribution"];
-                            }
-                            if (advertiserID) {
-                                [installActivity setObject:advertiserID forKey:@"advertiser_id"];
-                            }
-
-                            FBRequest *publishRequest = [[FBRequest alloc] initForPostWithSession:nil graphPath:publishPath graphObject:installActivity];
-                            [publishRequest startWithCompletionHandler:publishCompletionBlock];
-                        } else {
-                            // the app has turned off install insights.  prevent future attempts.
-                            [defaults setObject:[NSDate date] forKey:pingKey];
-                            [defaults synchronize];
-                        }
-                    } @catch (NSException *ex2) {
-                        NSLog(@"Failure during install publish: %@", ex2.reason);
+                    if (advertiserID) {
+                        [installActivity setObject:advertiserID forKey:@"advertiser_id"];
                     }
-                }
-            };
 
-            NSString *pingPath = [NSString stringWithFormat:FBSupportsAttributionPath, appID, nil];
-            FBRequest *pingRequest = [[FBRequest alloc] initWithSession:nil graphPath:pingPath];
-            [pingRequest startWithCompletionHandler:pingCompletionBlock];
-        }
-    } @catch (NSException *ex3) {
-        NSLog(@"Failure before/during install ping: %@", ex3.reason);
+                    FBRequest *publishRequest = [[FBRequest alloc] initForPostWithSession:nil graphPath:publishPath graphObject:installActivity];
+                    [publishRequest startWithCompletionHandler:publishCompletionBlock];
+                } else {
+                    // the app has turned off install insights.  prevent future attempts.
+                    [defaults setObject:[NSDate date] forKey:pingKey];
+                    [defaults synchronize];
+                }
+            }
+        };
+
+        NSString *pingPath = [NSString stringWithFormat:FBSupportsAttributionPath, appID, nil];
+        FBRequest *pingRequest = [[FBRequest alloc] initWithSession:nil graphPath:pingPath];
+        [pingRequest startWithCompletionHandler:pingCompletionBlock];
     }
 }
 

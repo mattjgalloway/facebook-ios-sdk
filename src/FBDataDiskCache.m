@@ -138,48 +138,38 @@ static NSString *const kAccessTokenKey = @"access_token";
 - (NSData*)dataForURL:(NSURL*)dataURL
 {
     // TODO: Synchronize this across threads
-    NSData* data = nil;
-    @try {
-        data = (NSData*)[_inMemoryCache objectForKey:dataURL];
-        NSString* fileName = 
-            [_cacheIndex fileNameForKey:dataURL.absoluteString];
+    NSData* data = (NSData*)[_inMemoryCache objectForKey:dataURL];
+    NSString* fileName =
+        [_cacheIndex fileNameForKey:dataURL.absoluteString];
 
-        if (data == nil && fileName != nil) {
-            // Not in-memory, on-disk only, read in
-            if ([self _doesFileExist:fileName]) {
-                NSString* cachePath = 
-                    [_dataCachePath stringByAppendingPathComponent:fileName];
+    if (data == nil && fileName != nil) {
+        // Not in-memory, on-disk only, read in
+        if ([self _doesFileExist:fileName]) {
+            NSString* cachePath = 
+                [_dataCachePath stringByAppendingPathComponent:fileName];
 
-                data = [NSData
-                    dataWithContentsOfFile:cachePath
-                    options:NSDataReadingMappedAlways | NSDataReadingUncached  
-                    error:nil];
+            data = [NSData
+                dataWithContentsOfFile:cachePath
+                options:NSDataReadingMappedAlways | NSDataReadingUncached  
+                error:nil];
 
-                if (data) {
-                    // It is possible that the file doesn't exist
-                    [_inMemoryCache 
-                        setObject:data 
-                        forKey:dataURL 
-                        cost:data.length];
-                }
+            if (data) {
+                // It is possible that the file doesn't exist
+                [_inMemoryCache 
+                    setObject:data 
+                    forKey:dataURL 
+                    cost:data.length];
             }
         }
-    } @catch (NSException* exception) {
-        NSLog(@"FBDiskCache error: %@", exception.reason);
-    } @finally {
-        return data;
     }
+    return data;
 }
 
 - (void)removeDataForUrl:(NSURL*)url
 {
     // TODO: Synchronize this across threads
-    @try {
-        [_inMemoryCache removeObjectForKey:url];
-        [_cacheIndex removeEntryForKey:url.absoluteString];
-    } @catch (NSException* exception) {
-        NSLog(@"FBDiskCache error: %@", exception.reason);
-    }
+    [_inMemoryCache removeObjectForKey:url];
+    [_cacheIndex removeEntryForKey:url.absoluteString];
 }
 
 - (void)removeDataForSession:(FBSession*)session
@@ -206,18 +196,14 @@ static NSString *const kAccessTokenKey = @"access_token";
 - (void)setData:(NSData*)data forURL:(NSURL*)url
 {
     // TODO: Synchronize this across threads
-    @try {
-        [_cacheIndex 
-            storeFileForKey:url.absoluteString 
-            withData:data];
+    [_cacheIndex
+        storeFileForKey:url.absoluteString 
+        withData:data];
 
-        [_inMemoryCache 
-            setObject:data 
-            forKey:url 
-            cost:data.length];
-    } @catch (NSException* exception) {
-        NSLog(@"FBDiskCache error: %@", exception.reason);
-    }
+    [_inMemoryCache 
+        setObject:data 
+        forKey:url 
+        cost:data.length];
 }
 
 @end
