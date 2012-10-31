@@ -26,7 +26,7 @@
 
 @property (nonatomic, readwrite, copy) NSSet *fieldsForRequest;
 @property (nonatomic, readwrite, copy) NSString *userID;
-@property (nonatomic, readwrite, retain) FBGraphObjectPagingLoader *loader;
+@property (nonatomic, readwrite, strong) FBGraphObjectPagingLoader *loader;
 
 // these properties are only used by unit tests, and should not be removed or made public
 @property (nonatomic, readwrite, assign) BOOL hasCompletedFetch;
@@ -69,12 +69,6 @@
     return self;
 }
 
-- (void)dealloc {
-    self.fieldsForRequest = nil;
-    self.userID = nil;
-    self.loader = nil;
-    [super dealloc];
-}
 
 - (void)prefetchAndCacheForSession:(FBSession*)session {
     // Friend queries require a session, so do nothing if we don't have one.
@@ -83,7 +77,7 @@
     }
 
     // datasource has some field ownership, so we need one here
-    FBGraphObjectTableDataSource *datasource = [[[FBGraphObjectTableDataSource alloc] init] autorelease];
+    FBGraphObjectTableDataSource *datasource = [[FBGraphObjectTableDataSource alloc] init];
     datasource.groupByField = @"name";
     
     // me or one of my friends that also uses the app
@@ -105,15 +99,13 @@
     }
     
     self.loader.delegate = nil;
-    self.loader = [[[FBGraphObjectPagingLoader alloc] initWithDataSource:datasource
-                                                              pagingMode:FBGraphObjectPagingModeImmediateViewless]
-                   autorelease];
+    self.loader = [[FBGraphObjectPagingLoader alloc] initWithDataSource:datasource
+                                                              pagingMode:FBGraphObjectPagingModeImmediateViewless];
     self.loader.session = session;
     
     self.loader.delegate = self;
     
     // make sure we are around to handle the delegate call
-    [self retain];
 
     // seed the cache
     [self.loader startLoadingWithRequest:request
@@ -131,7 +123,6 @@
     self.hasCompletedFetch = YES;
     
     // this feels like suicide!
-    [self release];    
 }
 
 @end

@@ -101,15 +101,15 @@ static FBSession *g_activeSession = nil;
 @property(readwrite)            FBSessionLoginType loginType;
 
 // private properties
-@property(readwrite, retain)    FBSessionTokenCachingStrategy *tokenCachingStrategy;
+@property(readwrite, strong)    FBSessionTokenCachingStrategy *tokenCachingStrategy;
 @property(readwrite, copy)      NSDate *refreshDate;
 @property(readwrite, copy)      NSDate *attemptedRefreshDate;
 @property(readwrite, copy)      FBSessionStateHandler loginHandler;
 @property(readwrite, copy)      FBSessionReauthorizeResultHandler reauthorizeHandler;
 @property(readwrite, copy)      NSArray *reauthorizePermissions;
-@property(readonly)             NSString *appBaseUrl;
-@property(readwrite, retain)    FBLoginDialog *loginDialog;
-@property(readwrite, retain)    NSThread *affinitizedThread;
+@property(unsafe_unretained, readonly)             NSString *appBaseUrl;
+@property(readwrite, strong)    FBLoginDialog *loginDialog;
+@property(readwrite, strong)    NSThread *affinitizedThread;
 
 // private members
 - (void)authorizeWithPermissions:(NSArray*)permissions
@@ -303,23 +303,6 @@ static FBSession *g_activeSession = nil;
     return self;
 }
 
-- (void)dealloc {
-    [_loginDialog release]; 
-    [_attemptedRefreshDate release];
-    [_refreshDate release];
-    [_reauthorizeHandler release];
-    [_loginHandler release];
-    [_reauthorizePermissions release];
-    [_appID release];
-    [_urlSchemeSuffix release];
-    [_accessToken release];
-    [_expirationDate release];
-    [_permissions release];
-    [_tokenCachingStrategy release];
-    [_affinitizedThread release];
-
-    [super dealloc];
-}
 
 #pragma mark -
 #pragma mark Public Members
@@ -499,7 +482,6 @@ static FBSession *g_activeSession = nil;
 // actually a private member, but wanted to be close to its public colleague
 - (void)setUrlSchemeSuffix:(NSString*)newValue {
     if (_urlSchemeSuffix != newValue) {
-        [_urlSchemeSuffix release];
         _urlSchemeSuffix = [(newValue ? newValue : @"") copy];
     }
 }
@@ -554,9 +536,8 @@ static FBSession *g_activeSession = nil;
     if (!g_activeSession) {
         FBSession *session = [[FBSession alloc] init];
         [FBSession setActiveSession:session];
-        [session release];
     }
-    return [[g_activeSession retain] autorelease];
+    return g_activeSession;
 }
 
 + (FBSession*)setActiveSession:(FBSession*)session {
@@ -570,14 +551,13 @@ static FBSession *g_activeSession = nil;
         [toRelease close];
         
         // set the new session
-        g_activeSession = [session retain];
+        g_activeSession = session;
         
         // some housekeeping needs to happen if we had a previous session
         if (toRelease) {
             // now the notification/release of the prior active
             [[NSNotificationCenter defaultCenter] postNotificationName:FBSessionDidUnsetActiveSessionNotification
                                                                 object:toRelease];
-            [toRelease release];
         }
         
         // we don't notify nil sets
@@ -596,9 +576,7 @@ static FBSession *g_activeSession = nil;
 }
 
 + (void)setDefaultAppID:(NSString*)appID {
-    NSString *oldValue = g_defaultAppID;
     g_defaultAppID = [appID copy];
-    [oldValue release];
 }
 
 + (NSString*)defaultAppID {
@@ -615,7 +593,7 @@ static FBSession *g_activeSession = nil;
     id accountStore = nil;
     id accountTypeFB = nil;
     
-    if ((accountStore = [[[ACAccountStore alloc] init] autorelease]) &&
+    if ((accountStore = [[ACAccountStore alloc] init]) &&
         (accountTypeFB = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierFacebook] ) ){
         
         NSArray *fbAccounts = [accountStore accountsWithAccountType:accountTypeFB];
@@ -885,7 +863,7 @@ static FBSession *g_activeSession = nil;
     // do we want and have the ability to attempt integrated authn
     if (tryIntegratedAuth &&
         (!isReauthorize || _isOSIntegratedFacebookLoginToken) &&
-        (accountStore = [[[NSClassFromString(@"ACAccountStore") alloc] init] autorelease]) &&
+        (accountStore = [[NSClassFromString(@"ACAccountStore") alloc] init]) &&
         (accountTypeFB = [accountStore accountTypeWithAccountTypeIdentifier:@"com.apple.facebook"])) {
                 
         // looks like we will get to attempt a login with integrated authn
@@ -941,10 +919,9 @@ static FBSession *g_activeSession = nil;
     if (!didAuthNWithSystemAccount) {
         if (tryFallback) {
             // open an inline login dialog. This will require the user to enter his or her credentials.
-            self.loginDialog = [[[FBLoginDialog alloc] initWithURL:loginDialogURL
+            self.loginDialog = [[FBLoginDialog alloc] initWithURL:loginDialogURL
                                                        loginParams:params
-                                                          delegate:self]
-                                autorelease];
+                                                          delegate:self];
             [self.loginDialog show];
         } else {
             // Can't fallback and Facebook Login failed, so transition to an error state
@@ -1221,13 +1198,12 @@ static FBSession *g_activeSession = nil;
         // refers to the same fbid as the old, and if so we will succeed the reauthorize call
         FBRequest *requestSessionMe = [FBRequest requestForGraphPath:@"me"];
         [requestSessionMe setSession:self];
-        FBRequest *requestNewTokenMe = [[[FBRequest alloc] initWithSession:nil
+        FBRequest *requestNewTokenMe = [[FBRequest alloc] initWithSession:nil
                                                                  graphPath:@"me"
                                                                 parameters:[NSDictionary dictionaryWithObjectsAndKeys:
                                                                             accessToken, @"access_token",
                                                                             nil]
-                                                                HTTPMethod:nil]
-                                        autorelease];
+                                                                HTTPMethod:nil];
         
         FBRequest *requestPermissions = [FBRequest requestForGraphPath:@"me/permissions"];
         [requestPermissions setSession:self];
@@ -1247,11 +1223,11 @@ static FBSession *g_activeSession = nil;
             
             // here we accumulate state from the various callbacks
             if (user && !fbid) {
-                fbid = [[user objectForKey:@"id"] retain];
+                fbid = [user objectForKey:@"id"];
             } else if (user && !fbid2) {
-                fbid2 = [[user objectForKey:@"id"] retain];
+                fbid2 = [user objectForKey:@"id"];
             } else if (permissions) {
-                permissionsRefreshed = [permissions retain];
+                permissionsRefreshed = permissions;
             }
             
             // if this was our last call, then complete the operation
@@ -1273,13 +1249,10 @@ static FBSession *g_activeSession = nil;
                 }
                 
                 // because these are __block, we manually handle their lifetime
-                [fbid release];
-                [fbid2 release];
-                [permissionsRefreshed release];
             }
         } copy];
                 
-        FBRequestConnection *connection = [[[FBRequestConnection alloc] init] autorelease];
+        FBRequestConnection *connection = [[FBRequestConnection alloc] init];
         [connection addRequest:requestSessionMe
              completionHandler:^(FBRequestConnection *connection, id<FBGraphUser> user, NSError *error) {
                  handleBatch(user, nil);
@@ -1449,7 +1422,7 @@ static FBSession *g_activeSession = nil;
 
     // release the object's count on the handler, but copy (not retain, since it is a block)
     // a stack ref to use as our callback outside of the lock
-    FBSessionStateHandler handler = [self.loginHandler retain];
+    FBSessionStateHandler handler = self.loginHandler;
 
     // the moment we transition to a terminal state, we release our handlers, and possibly fail-call reauthorize
     if (didTransition && FB_ISSESSIONSTATETERMINAL(self.state)) {
@@ -1472,7 +1445,7 @@ static FBSession *g_activeSession = nil;
         }
         @finally {
             // now release our stack reference
-            [handler release];
+            handler = nil;
         }
     }
 }
@@ -1480,13 +1453,12 @@ static FBSession *g_activeSession = nil;
 - (void)callReauthorizeHandlerAndClearState:(NSError*)error {
     
     // clear state and call handler
-    FBSessionReauthorizeResultHandler reauthorizeHandler = [self.reauthorizeHandler retain];
+    FBSessionReauthorizeResultHandler reauthorizeHandler = self.reauthorizeHandler;
     self.reauthorizeHandler = nil;
     self.reauthorizePermissions = nil;
     if (reauthorizeHandler) {
         reauthorizeHandler(self, error); 
     }
-    [reauthorizeHandler release];
 }
 
 - (NSString *)appBaseUrl {
@@ -1517,7 +1489,6 @@ static FBSession *g_activeSession = nil;
     NSError *err = [NSError errorWithDomain:FacebookSDKDomain
                                       code:FBErrorLoginFailedOrCancelled
                                   userInfo:userinfo];
-    [userinfo release];
     return err;
 }
 
@@ -1555,12 +1526,11 @@ static FBSession *g_activeSession = nil;
                           allowSystemAccount:allowSystemAccount
                                       isRead:isRead];
     BOOL result = NO;
-    FBSession *session = [[[FBSession alloc] initWithAppID:nil
+    FBSession *session = [[FBSession alloc] initWithAppID:nil
                                                permissions:permissions
                                            defaultAudience:defaultAudience
                                            urlSchemeSuffix:nil
-                                        tokenCacheStrategy:nil]
-                          autorelease];
+                                        tokenCacheStrategy:nil];
     if (allowLoginUI || session.state == FBSessionStateCreatedTokenLoaded) {
         [FBSession setActiveSession:session];
         // we open after the fact, in order to avoid overlapping close

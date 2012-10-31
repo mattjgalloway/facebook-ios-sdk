@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>FacebookAppID</key>
+	<string>325263394229739</string>
+	<key>FacebookAppSecret</key>
+	<string>731f301c7eb51011def929f7266aa100</string>
+	<key>UniqueUserTag</key>
+	<string>mattjgalloway</string>
+</dict>
+</plist>

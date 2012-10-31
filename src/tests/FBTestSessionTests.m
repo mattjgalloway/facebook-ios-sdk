@@ -41,7 +41,7 @@
     FBTestSession *fqlSession = [FBTestSession sessionWithSharedUserWithPermissions:nil];
     STAssertNil(fqlSession.accessToken, @"non-nil access token");
     
-    __block FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
     
     NSString *fqlQuery = [NSString stringWithFormat:@"SELECT id FROM test_account WHERE app_id = %@", fqlSession.testAppID];
     NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -50,11 +50,10 @@
                                 nil];   
     
     __block int count = 0;
-    FBRequest *request = [[[FBRequest alloc] initWithSession:fqlSession
+    FBRequest *request = [[FBRequest alloc] initWithSession:fqlSession
                                                    graphPath:@"fql"
                                                   parameters:parameters
-                                                  HTTPMethod:nil]
-                          autorelease];
+                                                  HTTPMethod:nil];
     [request startWithCompletionHandler:
      ^(FBRequestConnection *connection, id result, NSError *error) {
         STAssertNotNil(result, @"nil result");
@@ -70,7 +69,6 @@
     }];
      
     [blocker wait];
-    [blocker release];
     
     return count;
 }

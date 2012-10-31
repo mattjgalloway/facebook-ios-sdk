@@ -38,9 +38,9 @@ int const FBRefreshCacheDelaySeconds = 2;
                                             FBGraphObjectViewControllerDelegate,
                                             FBGraphObjectPagingLoaderDelegate>
 
-@property (nonatomic, retain) FBGraphObjectTableDataSource *dataSource;
-@property (nonatomic, retain) FBGraphObjectTableSelection *selectionManager;
-@property (nonatomic, retain) FBGraphObjectPagingLoader *loader;
+@property (nonatomic, strong) FBGraphObjectTableDataSource *dataSource;
+@property (nonatomic, strong) FBGraphObjectTableSelection *selectionManager;
+@property (nonatomic, strong) FBGraphObjectPagingLoader *loader;
 @property (nonatomic) BOOL trackActiveSession;
 
 - (void)initialize;
@@ -102,23 +102,20 @@ int const FBRefreshCacheDelaySeconds = 2;
 
 - (void)initialize {
     // Data Source
-    FBGraphObjectTableDataSource *dataSource = [[[FBGraphObjectTableDataSource alloc]
-                                                 init]
-                                                autorelease];
+    FBGraphObjectTableDataSource *dataSource = [[FBGraphObjectTableDataSource alloc]
+                                                 init];
     dataSource.defaultPicture = [UIImage imageNamed:defaultImageName];
     dataSource.controllerDelegate = self;
     dataSource.itemTitleSuffixEnabled = YES;
     
     // Selection Manager
-    FBGraphObjectTableSelection *selectionManager = [[[FBGraphObjectTableSelection alloc]
-                                                      initWithDataSource:dataSource]
-                                                     autorelease];
+    FBGraphObjectTableSelection *selectionManager = [[FBGraphObjectTableSelection alloc]
+                                                      initWithDataSource:dataSource];
     selectionManager.delegate = self;
 
     // Paging loader
-    id loader = [[[FBGraphObjectPagingLoader alloc] initWithDataSource:dataSource
-                                                            pagingMode:FBGraphObjectPagingModeImmediate]
-                 autorelease];
+    id loader = [[FBGraphObjectPagingLoader alloc] initWithDataSource:dataSource
+                                                            pagingMode:FBGraphObjectPagingModeImmediate];
     self.loader = loader;
     self.loader.delegate = self;
 
@@ -137,21 +134,12 @@ int const FBRefreshCacheDelaySeconds = 2;
 - (void)dealloc {
     [_loader cancel];
     _loader.delegate = nil;
-    [_loader release];
 
     _dataSource.controllerDelegate = nil;
     
-    [_dataSource release];
-    [_fieldsForRequest release];
-    [_selectionManager release];
-    [_spinner release];
-    [_tableView release];
-    [_userID release];
     
     [self removeSessionObserver:_session];
-    [_session release];
     
-    [super dealloc];
 }
 
 #pragma mark - Custom Properties
@@ -184,8 +172,7 @@ int const FBRefreshCacheDelaySeconds = 2;
     if (session != _session) {
         [self removeSessionObserver:_session];
         
-        [_session release];
-        _session = [session retain];
+        _session = session;
         
         [self addSessionObserver:session];
         
@@ -206,7 +193,7 @@ int const FBRefreshCacheDelaySeconds = 2;
     CGRect bounds = self.canvasView.bounds;
 
     if (!self.tableView) {
-        UITableView *tableView = [[[UITableView alloc] initWithFrame:bounds] autorelease];
+        UITableView *tableView = [[UITableView alloc] initWithFrame:bounds];
         tableView.autoresizingMask =
             UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 
@@ -215,9 +202,8 @@ int const FBRefreshCacheDelaySeconds = 2;
     }
 
     if (!self.spinner) {
-        UIActivityIndicatorView *spinner = [[[UIActivityIndicatorView alloc]
-                                             initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray]
-                                            autorelease];
+        UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc]
+                                             initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
         spinner.hidesWhenStopped = YES;
         // We want user to be able to scroll while we load.
         spinner.userInteractionEnabled = NO;
@@ -307,14 +293,13 @@ int const FBRefreshCacheDelaySeconds = 2;
 #pragma mark - public class members
 
 + (FBCacheDescriptor*)cacheDescriptor {
-    return [[[FBFriendPickerCacheDescriptor alloc] init] autorelease];
+    return [[FBFriendPickerCacheDescriptor alloc] init];
 }
 
 + (FBCacheDescriptor*)cacheDescriptorWithUserID:(NSString*)userID
                                fieldsForRequest:(NSSet*)fieldsForRequest {
-    return [[[FBFriendPickerCacheDescriptor alloc] initWithUserID:userID
-                                                 fieldsForRequest:fieldsForRequest]
-            autorelease];
+    return [[FBFriendPickerCacheDescriptor alloc] initWithUserID:userID
+                                                 fieldsForRequest:fieldsForRequest];
 }
 
 

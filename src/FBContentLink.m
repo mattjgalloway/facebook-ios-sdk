@@ -40,7 +40,7 @@
         NSString *query = [url fragment];
         NSDictionary *params = [FBUtility dictionaryByParsingURLQueryPart:query];
 
-        self.targetURL = [[[NSURL alloc] initWithString:[params valueForKey:@"target_url"]] autorelease];
+        self.targetURL = [[NSURL alloc] initWithString:[params valueForKey:@"target_url"]];
         self.actionTypes = [[params valueForKey:@"fb_action_types"] componentsSeparatedByString:@","];
         self.source = [params valueForKey:@"fb_source"];
         self.ref = [[params valueForKey:@"fb_ref"] componentsSeparatedByString:@","];
@@ -49,14 +49,5 @@
     return self;
 }
 
-- (void)dealloc
-{
-    self.targetURL = nil;
-    self.actionTypes =nil;
-    self.source = nil;
-    self.ref = nil;
-    self.originalQueryParameters = nil;
-    [super dealloc];
-}
 
 @end

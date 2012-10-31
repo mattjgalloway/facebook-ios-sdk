@@ -22,11 +22,11 @@
 
 @interface FBProfilePictureView()
 
-@property (readonly, nonatomic) NSString *imageQueryParamString;
-@property (retain, nonatomic) NSString *previousImageQueryParamString;
+@property (unsafe_unretained, readonly, nonatomic) NSString *imageQueryParamString;
+@property (strong, nonatomic) NSString *previousImageQueryParamString;
 
-@property (retain, nonatomic) FBURLConnection *connection;
-@property (retain, nonatomic) UIImageView *imageView;
+@property (strong, nonatomic) FBURLConnection *connection;
+@property (strong, nonatomic) UIImageView *imageView;
 
 - (void)initialize;
 - (void)refreshImage:(BOOL)forceRefresh;
@@ -44,14 +44,6 @@
 
 #pragma mark - Lifecycle
 
-- (void)dealloc {
-    [_profileID release];
-    [_imageView release];
-    [_connection release];
-    [_previousImageQueryParamString release];
-    
-    [super dealloc];
-}
 
 - (id)init {
     self = [super init];
@@ -128,7 +120,7 @@
         return;
     }
     
-    UIImageView* imageView = [[[UIImageView alloc] initWithFrame:self.bounds] autorelease];
+    UIImageView* imageView = [[UIImageView alloc] initWithFrame:self.bounds];
     imageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     self.imageView = imageView;
 
@@ -173,9 +165,8 @@
                                newImageQueryParamString];
         NSURL *url = [NSURL URLWithString:urlString];
         
-        self.connection = [[[FBURLConnection alloc] initWithURL:url
-                                              completionHandler:handler]
-                           autorelease];
+        self.connection = [[FBURLConnection alloc] initWithURL:url
+                                              completionHandler:handler];
     } else {
         BOOL isSquare = (self.pictureCropping == FBProfilePictureCroppingSquare);
 
@@ -213,7 +204,6 @@
 
 - (void)setProfileID:(NSString*)profileID {
     if (!_profileID || ![_profileID isEqualToString:profileID]) {
-        [_profileID release];
         _profileID = [profileID copy];
         [self refreshImage:YES];
     }

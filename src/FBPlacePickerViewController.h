@@ -52,13 +52,13 @@
  @abstract
  Returns an outlet for the spinner used in the view controller.
  */
-@property (nonatomic, retain) IBOutlet UIActivityIndicatorView *spinner;
+@property (nonatomic, strong) IBOutlet UIActivityIndicatorView *spinner;
 
 /*!
  @abstract
  Returns an outlet for the table view managed by the view controller.
  */
-@property (nonatomic, retain) IBOutlet UITableView *tableView;
+@property (nonatomic, strong) IBOutlet UITableView *tableView;
 
 /*!
  @abstract
@@ -100,14 +100,14 @@
  @abstract
  The session that is used in the request for place data.
  */
-@property (nonatomic, retain) FBSession *session;
+@property (nonatomic, strong) FBSession *session;
 
 /*!
  @abstract
  The place that is currently selected in the view.  This is nil
  if nothing is selected.
   */
-@property (nonatomic, retain, readonly) id<FBGraphPlace> selection;
+@property (nonatomic, strong, readonly) id<FBGraphPlace> selection;
 
 /*!
  @abstract

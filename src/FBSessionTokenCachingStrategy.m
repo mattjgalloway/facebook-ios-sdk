@@ -45,16 +45,10 @@ NSString *const FBTokenInformationPermissionsKey = @"com.facebook.sdk:TokenInfor
         _accessTokenInformationKeyName = tokenInformationKeyName ? tokenInformationKeyName : FBAccessTokenInformationKeyName;
 
         // keep-em
-        [_accessTokenInformationKeyName retain];
     }
     return self;    
 }
 
-- (void)dealloc {
-    // let-em go
-    [_accessTokenInformationKeyName release];
-    [super dealloc];
-}
 
 #pragma mark - 
 #pragma mark Public Members

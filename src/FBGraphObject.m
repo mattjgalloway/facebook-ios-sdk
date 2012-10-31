@@ -87,24 +87,18 @@ typedef enum _SelectorInferredImplType {
             // rather than allocate a wrapper
             
             // we are about to return this, better make it the caller's
-            [jsonObject retain];
             
             // we don't need self after all
-            [self release];
             
             // no wrapper needed, returning the object that was provided
             return (FBGraphObject*)jsonObject;
         } else {
-            _jsonObject = [[NSMutableDictionary dictionaryWithDictionary:jsonObject] retain];
+            _jsonObject = [NSMutableDictionary dictionaryWithDictionary:jsonObject];
         }
     }
     return self;
 }
 
-- (void)dealloc {
-    [_jsonObject release];
-    [super dealloc];
-}
 
 #pragma mark -
 #pragma mark Public Members
@@ -173,7 +167,7 @@ typedef enum _SelectorInferredImplType {
     switch ([FBGraphObject inferredImplTypeForSelector:[invocation selector]]) {
         case SelectorInferredImplTypeGet: {
             // property getter impl uses the selector name as an argument...
-            NSString *propertyName = NSStringFromSelector([invocation selector]);
+            NSString *__unsafe_unretained propertyName = NSStringFromSelector([invocation selector]);
             [invocation setArgument:&propertyName atIndex:2];
             //... to the replacement method objectForKey:
             invocation.selector = @selector(objectForKey:);
@@ -182,7 +176,7 @@ typedef enum _SelectorInferredImplType {
         }
         case SelectorInferredImplTypeSet: {
             // property setter impl uses the selector name as an argument...
-            NSMutableString *propertyName = [NSMutableString stringWithString:NSStringFromSelector([invocation selector])];
+            NSMutableString *__unsafe_unretained propertyName = [NSMutableString stringWithString:NSStringFromSelector([invocation selector])];
             // remove 'set' and trailing ':', and lowercase the new first character
             [propertyName deleteCharactersInRange:NSMakeRange(0, 3)];                       // "set"
             [propertyName deleteCharactersInRange:NSMakeRange(propertyName.length - 1, 1)]; // ":"
@@ -260,9 +254,9 @@ typedef enum _SelectorInferredImplType {
 
     // array and dictionary wrap
     if ([originalObject isKindOfClass:[NSDictionary class]]) {
-        result = [[[FBGraphObject alloc] initWrappingDictionary:originalObject] autorelease];
+        result = [[FBGraphObject alloc] initWrappingDictionary:originalObject];
     } else if ([originalObject isKindOfClass:[NSArray class]]) {
-        result = [[[FBGraphObjectArray alloc] initWrappingArray:originalObject] autorelease];
+        result = [[FBGraphObjectArray alloc] initWrappingArray:originalObject];
     }
     
     // return our object
@@ -296,7 +290,7 @@ typedef enum _SelectorInferredImplType {
         return NO;
     }
     
-    if ([protocol isEqual:@protocol(FBGraphObject)]) {
+    if (protocol == @protocol(FBGraphObject)) {
         return YES; // by definition
     }
 
@@ -332,7 +326,7 @@ typedef enum _SelectorInferredImplType {
     }
     
     // fetch adopted protocols
-    Protocol **adopted = nil;
+    Protocol *__unsafe_unretained *adopted = nil;
     @try { 
         adopted = protocol_copyProtocolList(protocol, &count);
         for (int index = 0; index < count; index++) {
@@ -370,24 +364,18 @@ typedef enum _SelectorInferredImplType {
             // rather than allocate a wrapper
             
             // we are about to return this, better make it the caller's
-            [jsonArray retain];
             
             // we don't need self after all
-            [self release];
             
             // no wrapper needed, returning the object that was provided
             return (FBGraphObjectArray*)jsonArray;
         } else {
-            _jsonArray = [[NSMutableArray arrayWithArray:jsonArray] retain];
+            _jsonArray = [NSMutableArray arrayWithArray:jsonArray];
         }
     }
     return self;
 }
 
-- (void)dealloc {
-    [_jsonArray release];
-    [super dealloc];
-}
 
 - (NSUInteger)count {
     return _jsonArray.count;

@@ -81,7 +81,7 @@ typedef void (^FBModalCompletionHandler)(FBViewController *sender, BOOL donePres
  If this button is provided, its target and action will be redirected to internal handlers, replacing
  any previous target that may have been set.
  */
-@property (nonatomic, retain) IBOutlet UIBarButtonItem *cancelButton;
+@property (nonatomic, strong) IBOutlet UIBarButtonItem *cancelButton;
 
 /*!
  @abstract
@@ -89,21 +89,21 @@ typedef void (^FBModalCompletionHandler)(FBViewController *sender, BOOL donePres
  If this button is provided, its target and action will be redirected to internal handlers, replacing
  any previous target that may have been set.
  */
-@property (nonatomic, retain) IBOutlet UIBarButtonItem *doneButton;
+@property (nonatomic, strong) IBOutlet UIBarButtonItem *doneButton;
 
 /*!
  @abstract
  The delegate that will be called when Cancel or Done is pressed. Derived classes may specify
  derived types for their delegates that provide additional functionality.
  */
-@property (nonatomic, assign) IBOutlet id<FBViewControllerDelegate> delegate;
+@property (nonatomic, unsafe_unretained) IBOutlet id<FBViewControllerDelegate> delegate;
 
 /*!
  @abstract
  The view into which derived classes should put their subviews. This view will be resized correctly
  depending on whether or not a toolbar is displayed.
  */
-@property (nonatomic, readonly, retain) UIView *canvasView;
+@property (nonatomic, readonly, strong) UIView *canvasView;
 
 /*!
  @abstract

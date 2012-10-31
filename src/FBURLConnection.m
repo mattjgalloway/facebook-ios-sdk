@@ -27,10 +27,10 @@ static NSArray* _cdnHosts;
 
 @interface FBURLConnection ()
 
-@property (nonatomic, retain) NSURLConnection *connection;
-@property (nonatomic, retain) NSMutableData *data;
+@property (nonatomic, strong) NSURLConnection *connection;
+@property (nonatomic, strong) NSMutableData *data;
 @property (nonatomic, copy) FBURLConnectionHandler handler;
-@property (nonatomic, retain) NSURLResponse *response;
+@property (nonatomic, strong) NSURLResponse *response;
 @property (nonatomic) unsigned long requestStartTime;
 @property (nonatomic, readonly) NSUInteger loggerSerialNumber;
 @property (nonatomic) BOOL skipRoundtripIfCached;
@@ -59,17 +59,17 @@ static NSArray* _cdnHosts;
 + (void)initialize
 {
     if (_cdnHosts == nil) {
-        _cdnHosts = [[NSArray arrayWithObjects:
+        _cdnHosts = [NSArray arrayWithObjects:
             @"akamaihd.net", 
             @"fbcdn.net", 
-            nil] retain];
+            nil];
     }
 }
 
 - (FBURLConnection *)initWithURL:(NSURL *)url
                completionHandler:(FBURLConnectionHandler)handler
 {
-    NSURLRequest *request = [[[NSURLRequest alloc] initWithURL:url] autorelease];
+    NSURLRequest *request = [[NSURLRequest alloc] initWithURL:url];
     return [self initWithRequest:request
            skipRoundTripIfCached:YES
                completionHandler:handler];
@@ -151,7 +151,6 @@ static NSArray* _cdnHosts;
         if ([mimeType isEqualToString:@"text/javascript"]) {
             NSString *responseUTF8 = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
             [mutableLogEntry appendFormat:@"  Response:\n%@\n\n", responseUTF8];
-            [responseUTF8 release];
         }
         
         logEntry = mutableLogEntry;
@@ -163,14 +162,6 @@ static NSArray* _cdnHosts;
     handler(self, error, response, responseData);
 }
 
-- (void)dealloc
-{
-    [_response release];
-    [_connection release];
-    [_data release];
-    [_handler release];
-    [super dealloc];
-}
 
 - (void)cancel
 {
@@ -186,15 +177,13 @@ static NSArray* _cdnHosts;
     // We are retaining ourselves (and releasing explicitly) because unlike the
     // other cases where we call the handler, we are not being held by anyone
     // else.
-    [self retain];
-    FBURLConnectionHandler handler = [self.handler retain];
+    FBURLConnectionHandler handler = self.handler;
     self.handler = nil;
     @try {
         [self invokeHandler:handler error:error response:nil responseData:nil];
     } @finally {
-        [handler release];
-        [self release];
-        [error release];
+        handler = nil;
+        error = nil;
     }
 }
 
@@ -255,7 +244,6 @@ didReceiveResponse:(NSURLResponse *)response
                         expectedContentLength:cachedData.length 
                         textEncodingName:@"utf8"];
                 [self invokeHandler:self.handler error:nil response:cacheResponse responseData:cachedData];
-                [cacheResponse release];
             } @finally {
                 self.handler = nil;
             }

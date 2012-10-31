@@ -40,11 +40,11 @@ static CGSize g_imageSize;
 - (void)handleActiveSessionSetNotifications:(NSNotification *)notification;
 - (void)handleActiveSessionUnsetNotifications:(NSNotification *)notification;
 
-@property (retain, nonatomic) UILabel *label;
-@property (retain, nonatomic) UIButton *button;
-@property (retain, nonatomic) FBSession *session;
-@property (retain, nonatomic) FBRequestConnection *request;
-@property (retain, nonatomic) id<FBGraphUser> user;
+@property (strong, nonatomic) UILabel *label;
+@property (strong, nonatomic) UIButton *button;
+@property (strong, nonatomic) FBSession *session;
+@property (strong, nonatomic) FBRequestConnection *request;
+@property (strong, nonatomic) id<FBGraphUser> user;
 
 @end
 
@@ -123,14 +123,7 @@ static CGSize g_imageSize;
     // if we have an outstanding request, cancel
     [self.request cancel];
     
-    [_request release];
-    [_label release];
-    [_button release];
-    [_session release];
-    [_user release];
-    [_permissions release];
     
-    [super dealloc];
 }
 
 - (void)setDelegate:(id<FBLoginViewDelegate>)newValue {
@@ -193,7 +186,7 @@ static CGSize g_imageSize;
     [self addSubview:self.button];
     
     // add a label that will appear over the button
-    self.label = [[[UILabel alloc] init] autorelease];
+    self.label = [[UILabel alloc] init];
     self.label.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     self.label.textAlignment = UITextAlignmentCenter;
     self.label.backgroundColor = [UIColor clearColor];
@@ -257,16 +250,18 @@ static CGSize g_imageSize;
 - (void)fetchMeInfo {
     FBRequest *request = [FBRequest requestForMe];
     [request setSession:self.session];
-    self.request = [[[FBRequestConnection alloc] init] autorelease];
+    
+    __unsafe_unretained FBLoginView *weakSelf = self;
+    self.request = [[FBRequestConnection alloc] init];
     [self.request addRequest:request
            completionHandler:^(FBRequestConnection *connection, NSMutableDictionary<FBGraphUser> *result, NSError *error) {
                if (result) {
-                   self.user = result;
-                   [self informDelegate:YES];
+                   weakSelf.user = result;
+                   [weakSelf informDelegate:YES];
                } else {
-                   self.user = nil;
+                   weakSelf.user = nil;
                }
-               self.request = nil;
+               weakSelf.request = nil;
            }];
     [self.request startWithCacheIdentity:FBLoginViewCacheIdentity
                    skipRoundtripIfCached:YES];
@@ -408,12 +403,11 @@ static CGSize g_imageSize;
                                                          withDefault:@"Cancel"];
             NSString *logOutTitle = [FBUtility localizedStringForKey:@"FBLV:LogOutAction"
                                                          withDefault:@"Log Out"];
-            UIActionSheet *sheet = [[[UIActionSheet alloc] initWithTitle:title
+            UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:title
                                                                 delegate:self
                                                        cancelButtonTitle:cancelTitle
                                                   destructiveButtonTitle:logOutTitle
-                                                       otherButtonTitles:nil]
-                                    autorelease];
+                                                       otherButtonTitles:nil];
             // Show the sheet
             [sheet showInView:self];
         }

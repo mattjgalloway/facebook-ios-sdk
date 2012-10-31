@@ -47,7 +47,6 @@
     STAssertTrue([contentLink.ref isEqualToArray:testRef], @"Failed to correctly parse fb_ref");
     STAssertTrue([contentLink.originalQueryParameters isEqualToDictionary:testOriginalQueryParameters], @"Incorrect originalQueryParameters");
     
-    [contentLink dealloc];
 }
 
 @end

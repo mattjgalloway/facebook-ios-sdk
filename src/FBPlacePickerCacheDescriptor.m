@@ -27,7 +27,7 @@
 @property (nonatomic, readwrite) NSInteger resultsLimit;
 @property (nonatomic, readwrite, copy) NSString *searchText;
 @property (nonatomic, readwrite, copy) NSSet *fieldsForRequest;
-@property (nonatomic, readwrite, retain) FBGraphObjectPagingLoader *loader;
+@property (nonatomic, readwrite, strong) FBGraphObjectPagingLoader *loader;
 
 // this property is only used by unit tests, and should not be removed or made public
 @property (nonatomic, readwrite, assign) BOOL hasCompletedFetch;
@@ -61,12 +61,6 @@
     return self;
 }
 
-- (void)dealloc {
-    self.fieldsForRequest = nil;
-    self.searchText = nil;
-    self.loader = nil;
-    [super dealloc];
-}
 
 - (void)prefetchAndCacheForSession:(FBSession*)session {
     // Place queries require a session, so do nothing if we don't have one.
@@ -75,7 +69,7 @@
     }
 
     // datasource has some field ownership, so we need one here
-    FBGraphObjectTableDataSource *datasource = [[[FBGraphObjectTableDataSource alloc] init] autorelease];
+    FBGraphObjectTableDataSource *datasource = [[FBGraphObjectTableDataSource alloc] init];
     
     // create the request object that we will start with
     FBRequest *request = [FBPlacePickerViewController requestForPlacesSearchAtCoordinate:self.locationCoordinate
@@ -87,14 +81,12 @@
                                                                                  session:session];
     
     self.loader.delegate = nil;
-    self.loader = [[[FBGraphObjectPagingLoader alloc] initWithDataSource:datasource
-                                                              pagingMode:FBGraphObjectPagingModeAsNeeded]
-                   autorelease];
+    self.loader = [[FBGraphObjectPagingLoader alloc] initWithDataSource:datasource
+                                                              pagingMode:FBGraphObjectPagingModeAsNeeded];
     self.loader.session = session;
     self.loader.delegate = self;
     
     // make sure we are around to handle the delegate call
-    [self retain];
     
     // seed the cache
     [self.loader startLoadingWithRequest:request
@@ -108,7 +100,6 @@
     self.hasCompletedFetch = YES;
     
     // achieving detachment
-    [self release];    
 }
 
 @end

@@ -50,9 +50,9 @@ static NSString *const FBexpirationDatePropertyName = @"expirationDate";
 // private properties
 @property(nonatomic, copy) NSString* appId;
 // session and tokenCaching object implement login logic and token state in Facebook class
-@property(nonatomic, readwrite, retain) FBSession *session;
+@property(nonatomic, readwrite, strong) FBSession *session;
 @property(nonatomic) BOOL hasUpdatedAccessToken;
-@property(nonatomic, retain) FBSessionManualTokenCachingStrategy *tokenCaching;
+@property(nonatomic, strong) FBSessionManualTokenCachingStrategy *tokenCaching;
 
 @end
 
@@ -109,7 +109,7 @@ static NSString *const FBexpirationDatePropertyName = @"expirationDate";
     self = [super init];
     if (self) {
         _requests = [[NSMutableSet alloc] init];
-        _lastAccessTokenUpdate = [[NSDate distantPast] retain];
+        _lastAccessTokenUpdate = [NSDate distantPast];
         _frictionlessRequestSettings = [[FBFrictionlessRequestSettings alloc] init];
         _tokenCaching = [[FBSessionManualTokenCachingStrategy alloc] init];        
         self.appId = appId;
@@ -137,20 +137,11 @@ static NSString *const FBexpirationDatePropertyName = @"expirationDate";
     // this is the one case where the delegate is this object
     _requestExtendingAccessToken.delegate = nil;
 
-    [_session release];
-    [_tokenCaching release];
 
     for (FBRequest* _request in _requests) {
         [_request removeObserver:self forKeyPath:requestFinishedKeyPath];
     }
-    [_lastAccessTokenUpdate release];
-    [_requests release];
     _fbDialog.delegate = nil;
-    [_fbDialog release];
-    [_appId release];
-    [_urlSchemeSuffix release];
-    [_frictionlessRequestSettings release];
-    [super dealloc];
 }
 
 - (void)invalidateSession {
@@ -226,7 +217,7 @@ static NSString *const FBexpirationDatePropertyName = @"expirationDate";
  */
 - (NSDictionary*)parseURLParams:(NSString *)query {
 	NSArray *pairs = [query componentsSeparatedByString:@"&"];
-	NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
+	NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
 	for (NSString *pair in pairs) {
 		NSArray *kv = [pair componentsSeparatedByString:@"="];
 		NSString *val =
@@ -245,11 +236,10 @@ static NSString *const FBexpirationDatePropertyName = @"expirationDate";
         // invalidate current session and create a new one with the same permissions
         NSArray *permissions = self.session.permissions;
         [self.session close];    
-        self.session = [[[FBSession alloc] initWithAppID:_appId
+        self.session = [[FBSession alloc] initWithAppID:_appId
                                              permissions:permissions
                                          urlSchemeSuffix:_urlSchemeSuffix
-                                      tokenCacheStrategy:self.tokenCaching]
-                           autorelease];
+                                      tokenCacheStrategy:self.tokenCaching];
     
         // get the session into a valid state
         [self.session openWithCompletionHandler:nil];
@@ -295,11 +285,10 @@ static NSString *const FBexpirationDatePropertyName = @"expirationDate";
     self.session = nil;
     [self.tokenCaching clearToken];
     
-    self.session = [[[FBSession alloc] initWithAppID:_appId
+    self.session = [[FBSession alloc] initWithAppID:_appId
                                          permissions:permissions
                                      urlSchemeSuffix:_urlSchemeSuffix
-                                  tokenCacheStrategy:self.tokenCaching]
-                    autorelease];
+                                  tokenCacheStrategy:self.tokenCaching];
     
     [self.session openWithCompletionHandler:^(FBSession *session, FBSessionState status, NSError *error) {
         switch (status) {
@@ -382,7 +371,7 @@ static NSString *const FBexpirationDatePropertyName = @"expirationDate";
  */
 - (BOOL)shouldExtendAccessToken {
     if ([self isSessionValid]){
-        NSCalendar *calendar = [[[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar] autorelease];
+        NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
         NSDateComponents *components = [calendar components:NSHourCalendarUnit
                                                    fromDate:_lastAccessTokenUpdate
                                                      toDate:[NSDate date]
@@ -654,7 +643,6 @@ static NSString *const FBexpirationDatePropertyName = @"expirationDate";
      andParams:(NSMutableDictionary *)params
    andDelegate:(id <FBDialogDelegate>)delegate {
     
-    [_fbDialog release];
     
     NSString *dialogURL = [kDialogBaseURL stringByAppendingString:action];
     [params setObject:@"touch" forKey:@"display"];
@@ -690,7 +678,7 @@ static NSString *const FBexpirationDatePropertyName = @"expirationDate";
             id fbid = [params objectForKey:@"to"];
             if (fbid != nil) {
                 // if value parses as a json array expression get the list that way
-                FBSBJsonParser *parser = [[[FBSBJsonParser alloc] init] autorelease];
+                FBSBJsonParser *parser = [[FBSBJsonParser alloc] init];
                 id fbids = [parser objectWithString:fbid];
                 if (![fbids isKindOfClass:[NSArray class]]) {
                     // otherwise seperate by commas (handles the singleton case too)
@@ -746,8 +734,7 @@ static NSString *const FBexpirationDatePropertyName = @"expirationDate";
  * Set the authToken and expirationDate after login succeed
  */
 - (void)fbDialogLogin:(NSString *)token expirationDate:(NSDate *)expirationDate {
-    [_lastAccessTokenUpdate release];
-    _lastAccessTokenUpdate = [[NSDate date] retain];
+    _lastAccessTokenUpdate = [NSDate date];
     [self reloadFrictionlessRecipientCache];
     if ([self.sessionDelegate respondsToSelector:@selector(fbDidLogin)]) {
         [self.sessionDelegate fbDidLogin];
@@ -789,8 +776,7 @@ static NSString *const FBexpirationDatePropertyName = @"expirationDate";
         expirationDate = [NSDate dateWithTimeIntervalSince1970:timeInterval];
     }
     self.expirationDate = expirationDate;
-    [_lastAccessTokenUpdate release];
-    _lastAccessTokenUpdate = [[NSDate date] retain];
+    _lastAccessTokenUpdate = [NSDate date];
     
     [self updateSessionIfTokenUpdated];
     

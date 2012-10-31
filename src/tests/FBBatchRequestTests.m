@@ -52,8 +52,6 @@
     [connection start];
     [blocker wait];
     
-    [connection release];
-    [blocker release];
 }
 
 - (void)testDifferentAccessTokens 
@@ -62,15 +60,13 @@
     FBTestSession *session2 = [self getSessionWithSharedUserWithPermissions:nil
                                                               uniqueUserTag:kSecondTestUserTag];
     
-    FBRequest *request1 = [[[FBRequest alloc] initWithSession:session1
-                                                    graphPath:@"me"]
-                           autorelease];
-    FBRequest *request2 = [[[FBRequest alloc] initWithSession:session2
-                                                    graphPath:@"me"]
-                           autorelease];
+    FBRequest *request1 = [[FBRequest alloc] initWithSession:session1
+                                                    graphPath:@"me"];
+    FBRequest *request2 = [[FBRequest alloc] initWithSession:session2
+                                                    graphPath:@"me"];
     
     FBRequestConnection *connection = [[FBRequestConnection alloc] init];
-    __block FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
     
     [connection addRequest:request1 
          completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
@@ -92,22 +88,18 @@
     [connection start];
     [blocker wait];
     
-    [connection release];
-    [blocker release];
 }
 
 
 - (void)testBatchWithValidSessionAndNoSession
 {
-    FBRequest *request1 = [[[FBRequest alloc] initWithSession:self.defaultTestSession
-                                                    graphPath:@"me"]
-                           autorelease];
-    FBRequest *request2 = [[[FBRequest alloc] initWithSession:nil
-                                                    graphPath:@"zuck"]
-                           autorelease];
+    FBRequest *request1 = [[FBRequest alloc] initWithSession:self.defaultTestSession
+                                                    graphPath:@"me"];
+    FBRequest *request2 = [[FBRequest alloc] initWithSession:nil
+                                                    graphPath:@"zuck"];
     
     FBRequestConnection *connection = [[FBRequestConnection alloc] init];
-    __block FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
     
     [connection addRequest:request1 
          completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
@@ -124,21 +116,17 @@
     [connection start];
     [blocker wait];
     
-    [connection release];
-    [blocker release];
 }
 
 - (void)testBatchWithNoSessionAndValidSession
 {
-    FBRequest *request1 = [[[FBRequest alloc] initWithSession:nil
-                                                    graphPath:@"zuck"]
-                           autorelease];
-    FBRequest *request2 = [[[FBRequest alloc] initWithSession:self.defaultTestSession
-                                                    graphPath:@"me"]
-                           autorelease];
+    FBRequest *request1 = [[FBRequest alloc] initWithSession:nil
+                                                    graphPath:@"zuck"];
+    FBRequest *request2 = [[FBRequest alloc] initWithSession:self.defaultTestSession
+                                                    graphPath:@"me"];
     
     FBRequestConnection *connection = [[FBRequestConnection alloc] init];
-    __block FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
     
     [connection addRequest:request1 
          completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
@@ -155,20 +143,16 @@
     [connection start];
     [blocker wait];
     
-    [connection release];
-    [blocker release];
 }
 
 - (void)testBatchWithTwoSessionlessRequestsAndNoDefaultAppID
 {
     [FBSession setDefaultAppID:nil];
 
-    FBRequest *request1 = [[[FBRequest alloc] initWithSession:nil
-                                                    graphPath:@"zuck"]
-                           autorelease];
-    FBRequest *request2 = [[[FBRequest alloc] initWithSession:nil
-                                                    graphPath:@"zuck"]
-                           autorelease];
+    FBRequest *request1 = [[FBRequest alloc] initWithSession:nil
+                                                    graphPath:@"zuck"];
+    FBRequest *request2 = [[FBRequest alloc] initWithSession:nil
+                                                    graphPath:@"zuck"];
     
     FBRequestConnection *connection = [[FBRequestConnection alloc] init];
     
@@ -180,7 +164,6 @@
          }];
     
     STAssertThrows([connection start], @"didn't throw");    
-    [connection release];
 }
 
 - (void)testBatchWithTwoSessionlessRequestsAndDefaultAppID
@@ -189,15 +172,13 @@
     FBTestSession *session = self.defaultTestSession;
     [FBSession setDefaultAppID:session.testAppID];
     
-    FBRequest *request1 =[[[FBRequest alloc] initWithSession:nil
-                                                   graphPath:@"zuck"]
-                          autorelease];
-    FBRequest *request2 = [[[FBRequest alloc] initWithSession:nil
-                                                    graphPath:@"zuck"]
-                           autorelease];
+    FBRequest *request1 =[[FBRequest alloc] initWithSession:nil
+                                                   graphPath:@"zuck"];
+    FBRequest *request2 = [[FBRequest alloc] initWithSession:nil
+                                                    graphPath:@"zuck"];
     
     FBRequestConnection *connection = [[FBRequestConnection alloc] init];
-    __block FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
     
     [connection addRequest:request1 
          completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
@@ -214,8 +195,6 @@
     [connection start];
     [blocker wait];
     
-    [connection release];
-    [blocker release];
 }
 
 - (void)testMixedSuccessAndFailure
@@ -227,9 +206,8 @@
 
     for (int i = 0; i < kNumRequests; ++i) {
         BOOL success = (i % 2) == 1;
-        FBRequest *request = [[[FBRequest alloc] initWithSession:self.defaultTestSession
-                                                       graphPath:success ? @"me" : @"-1"]
-                              autorelease];
+        FBRequest *request = [[FBRequest alloc] initWithSession:self.defaultTestSession
+                                                       graphPath:success ? @"me" : @"-1"];
         [connection addRequest:request 
              completionHandler:success ? 
                 [self handlerExpectingSuccessSignaling:blocker] :
@@ -239,8 +217,6 @@
     [connection start];
     [blocker wait];
     
-    [connection release];
-    [blocker release];
 }
 
 - (void)testBatchUploadPhoto
@@ -248,7 +224,7 @@
     FBTestSession *session = [self getSessionWithSharedUserWithPermissions:[NSArray arrayWithObject:@"user_photos"]];
     
     FBRequestConnection *connection = [[FBRequestConnection alloc] init];
-    __block FBTestBlocker *blocker = [[FBTestBlocker alloc] initWithExpectedSignalCount:4];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] initWithExpectedSignalCount:4];
     
     const int image1Size = 120;
     const int image2Size = 150;
@@ -307,8 +283,6 @@
     [connection start];
     [blocker wait];
     
-    [connection release];
-    [blocker release];
 }
 
 @end

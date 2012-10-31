@@ -136,7 +136,7 @@
 
 - (void)testGraphObjectTypedRequest
 {
-    FBTestBlocker *blocker = [[[FBTestBlocker alloc] init] autorelease];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
     [FBRequestConnection startWithGraphPath:@"4" // Zuck
                           completionHandler:^(FBRequestConnection *connection, id<FBGraphUser> zuck, NSError *error) {
                               STAssertTrue([zuck.first_name isEqualToString:@"Mark"], @"zuck != zuck");
@@ -146,7 +146,7 @@
     
     [blocker wait];
     
-    blocker = [[[FBTestBlocker alloc] init] autorelease];
+    blocker = [[FBTestBlocker alloc] init];
     [FBRequestConnection startWithGraphPath:@"100902843288017" // great fried chicken
                           completionHandler:^(FBRequestConnection *connection, id<FBGraphPlace> chicken, NSError *error) {
                               STAssertTrue([chicken.name isEqualToString:@"Ezell's Famous Chicken"], @"name wrong");
@@ -160,7 +160,7 @@
 
 - (void)testGraphObjectTypedRequest2
 {
-    FBTestBlocker *blocker = [[[FBTestBlocker alloc] init] autorelease];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
     [FBRequestConnection startWithGraphPath:@"4" // Zuck
                           completionHandler:^(FBRequestConnection *connection, id<FBGraphUser> zuck, NSError *error) {
                               STAssertTrue([zuck.first_name isEqualToString:@"Mark"], @"zuck != zuck");
@@ -255,7 +255,6 @@
                           completionHandler:[self handlerExpectingSuccessSignaling:blocker]];
     
     [blocker wait];
-    [blocker release];
 
 }
 
@@ -266,7 +265,6 @@
     [FBRequestConnection startWithGraphPath:@"-1"
                           completionHandler:[self handlerExpectingFailureSignaling:blocker]];
     [blocker wait];
-    [blocker release];
     
 }
 
@@ -311,8 +309,8 @@
     [comment setObject:commentMessage forKey:@"message"];
 
     id comment1 = [self postComment:comment toStatusID:statusID];
-    NSString *comment1ID = [[[comment1 objectForKey:@"id"] retain] autorelease];
-    NSString *comment1Message = [[[comment1 objectForKey:@"message"] retain] autorelease];
+    NSString *comment1ID = [comment1 objectForKey:@"id"];
+    NSString *comment1Message = [comment1 objectForKey:@"message"];
 
     // Try posting the same comment to the same status update. We need to clear its ID first.
     [comment1 removeObjectForKey:@"id"];

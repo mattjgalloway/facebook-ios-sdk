@@ -42,7 +42,7 @@
  * pop-ups promoting for credentials, permissions, stream posts, etc.)
  */
 @interface Facebook : NSObject<FBLoginDialogDelegate>{
-    id<FBSessionDelegate> _sessionDelegate;
+    id<FBSessionDelegate> __unsafe_unretained _sessionDelegate;
     NSMutableSet* _requests;
     FBSession* _session;    
     FBSessionManualTokenCachingStrategy *_tokenCaching;
@@ -57,10 +57,10 @@
 
 @property(nonatomic, copy) NSString* accessToken;
 @property(nonatomic, copy) NSDate* expirationDate;
-@property(nonatomic, assign) id<FBSessionDelegate> sessionDelegate;
+@property(nonatomic, unsafe_unretained) id<FBSessionDelegate> sessionDelegate;
 @property(nonatomic, copy) NSString* urlSchemeSuffix;
 @property(nonatomic, readonly) BOOL isFrictionlessRequestsEnabled;
-@property(nonatomic, readonly, retain) FBSession *session;
+@property(nonatomic, readonly, strong) FBSession *session;
 
 - (id)initWithAppId:(NSString *)appId
         andDelegate:(id<FBSessionDelegate>)delegate;

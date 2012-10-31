@@ -17,12 +17,13 @@
 #import "FBGraphObjectPagingLoader.h"
 #import "FBRequest.h"
 #import "FBError.h"
+#import "FBSession.h"
 #import "FBRequestConnection+Internal.h"
 
 @interface FBGraphObjectPagingLoader ()
 
-@property (nonatomic, retain) NSString *nextLink;
-@property (nonatomic, retain) FBRequestConnection *connection;
+@property (nonatomic, strong) NSString *nextLink;
+@property (nonatomic, strong) FBRequestConnection *connection;
 @property (nonatomic, copy) NSString *cacheIdentity;
 @property (nonatomic, assign) BOOL skipRoundtripIfCached;
 @property (nonatomic) FBGraphObjectPagingMode pagingMode;
@@ -61,22 +62,10 @@
     return self;
 }
 
-- (void)dealloc {
-    [_tableView release];
-    [_dataSource release];
-    [_nextLink release];
-    [_session release];
-    [_connection release];
-    [_cacheIdentity release];
-    
-    [super dealloc];
-}
 
 #pragma mark -
 
 - (void)setDataSource:(FBGraphObjectTableDataSource *)dataSource {
-    [dataSource retain];
-    [_dataSource release];
     _dataSource = dataSource;
     if (self.pagingMode == FBGraphObjectPagingModeAsNeeded) {
         _dataSource.dataNeededDelegate = self;
@@ -86,8 +75,6 @@
 }
 
 - (void)setTableView:(UITableView*)tableView {
-    [tableView retain];
-    [_tableView release];
     _tableView = tableView;
 
     // If we already have a nextLink and we are in immediate paging mode, re-start
@@ -215,8 +202,6 @@
         [self.connection startWithCacheIdentity:self.cacheIdentity
                           skipRoundtripIfCached:self.skipRoundtripIfCached];
         
-        [request release];
-        [connection release];
     }
 }
 
@@ -242,7 +227,6 @@
     [self.connection startWithCacheIdentity:self.cacheIdentity
                       skipRoundtripIfCached:self.skipRoundtripIfCached];
 
-    [connection release];
 
     NSString *urlString = [[[self.connection urlRequest] URL] absoluteString];
     if ([self.delegate respondsToSelector:@selector(pagingLoader:willLoadURL:)]) {
@@ -278,10 +262,9 @@
     if (!error && !data) {
         NSDictionary *userInfo = [NSDictionary dictionaryWithObject:result
                                                              forKey:FBErrorParsedJSONResponseKey];
-        error = [[[NSError alloc] initWithDomain:FacebookSDKDomain
+        error = [[NSError alloc] initWithDomain:FacebookSDKDomain
                                             code:FBErrorProtocolMismatch
-                                        userInfo:userInfo]
-                 autorelease];
+                                        userInfo:userInfo];
     } 
     
     if (error) {

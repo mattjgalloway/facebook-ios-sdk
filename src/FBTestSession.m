@@ -138,17 +138,6 @@ tokenCachingStrategy:(FBSessionTokenCachingStrategy*)tokenCachingStrategy
     return self;
 }
 
-- (void)dealloc 
-{
-    [_appAccessToken release];
-    [_testUserID release];
-    [_testAppID release];
-    [_testAppSecret release];
-    [_machineUniqueUserKey release];
-    [_sessionUniqueUserTag release];
-    
-    [super dealloc];
-}
 
 #pragma mark -
 #pragma mark Private methods
@@ -180,11 +169,10 @@ tokenCachingStrategy:(FBSessionTokenCachingStrategy*)tokenCachingStrategy
     // if there is demand for support for apps for which this will not work, we may consider handling 
     // failure by falling back and fetching an app-token via a request; the current approach reduces 
     // traffic for common unit testing configuration, which seems like the right tradeoff to start with
-    FBRequest *request = [[[FBRequest alloc] initWithSession:nil
+    FBRequest *request = [[FBRequest alloc] initWithSession:nil
                                                    graphPath:[NSString stringWithFormat:FBLoginAuthTestUserCreatePathFormat, self.appID]
                                                   parameters:parameters
-                                                  HTTPMethod:nil]
-                          autorelease];
+                                                  HTTPMethod:nil];
     [request startWithCompletionHandler:
      ^(FBRequestConnection *connection, id result, NSError *error) {
          id userToken;
@@ -300,17 +288,15 @@ tokenCachingStrategy:(FBSessionTokenCachingStrategy*)tokenCachingStrategy
 
     FBSBJSON *writer = [[FBSBJSON alloc] init];
     NSString *jsonMultiquery = [writer stringWithObject:multiquery];
-    [writer release];
 
     NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:
                                 jsonMultiquery, @"q",
                                 self.appAccessToken, @"access_token",
                                 nil];
-    FBRequest *request = [[[FBRequest alloc] initWithSession:nil
+    FBRequest *request = [[FBRequest alloc] initWithSession:nil
                                                   graphPath:@"fql"
                                                  parameters:parameters
-                                                 HTTPMethod:nil]
-                         autorelease];
+                                                 HTTPMethod:nil];
     [request startWithCompletionHandler:
      ^(FBRequestConnection *connection, id result, NSError *error) {
          if (error ||
@@ -528,17 +514,15 @@ tokenCachingStrategy:(FBSessionTokenCachingStrategy*)tokenCachingStrategy
     }
 
     // call our internal designated initializer to create a unit-testing instance
-    FBTestSession *session = [[[FBTestSession alloc] 
+    FBTestSession *session = [[FBTestSession alloc] 
                                initWithAppID:appID 
                                    appSecret:appSecret 
                         machineUniqueUserTag:machineUniqueUserTag
                         sessionUniqueUserTag:sessionUniqueUserTag
                                         mode:mode
                                  permissions:permissions 
-                        tokenCachingStrategy:tokenCachingStrategy]
-            autorelease];
+                        tokenCachingStrategy:tokenCachingStrategy];
 
-    [tokenCachingStrategy release];
 
     return session;
 }
@@ -558,8 +542,6 @@ tokenCachingStrategy:(FBSessionTokenCachingStrategy*)tokenCachingStrategy
         FBRequestConnection *connection = [[FBRequestConnection alloc] init];
         [connection addRequest:temp completionHandler:nil];
         NSURLRequest *request = connection.urlRequest;
-        [temp release];
-        [connection release];
         
         // synchronously delete the user
         NSURLResponse *response;
@@ -569,9 +551,8 @@ tokenCachingStrategy:(FBSessionTokenCachingStrategy*)tokenCachingStrategy
                                      returningResponse:&response
                                                  error:&error];
         // if !data or if data == false, log
-        NSString *body = !data ? nil : [[[NSString alloc] initWithData:data
-                                                              encoding:NSUTF8StringEncoding]
-                                        autorelease];
+        NSString *body = !data ? nil : [[NSString alloc] initWithData:data
+                                                              encoding:NSUTF8StringEncoding];
         if (!data || [body isEqualToString:@"false"]) {
             NSLog(@"FBSession !delete test user with id:%@ error:%@", userID, error ? error : body);
         }         

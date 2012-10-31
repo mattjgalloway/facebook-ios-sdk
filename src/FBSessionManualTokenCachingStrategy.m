@@ -22,11 +22,6 @@
 @synthesize accessToken = _accessToken,
             expirationDate = _expirationDate;
 
-- (void)dealloc {
-    [_accessToken release];
-    [_expirationDate release];
-    [super dealloc];
-}
 
 - (void)cacheTokenInformation:(NSDictionary*)tokenInformation {
     self.accessToken = [tokenInformation objectForKey:FBTokenInformationTokenKey];

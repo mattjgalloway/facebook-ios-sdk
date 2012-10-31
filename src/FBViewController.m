@@ -19,9 +19,9 @@
 
 @interface FBViewController ()
 
-@property (nonatomic, retain) UIToolbar *toolbar;
-@property (nonatomic, retain) UIView *canvasView;
-@property (nonatomic, retain) UIBarButtonItem *titleLabel;
+@property (nonatomic, strong) UIToolbar *toolbar;
+@property (nonatomic, strong) UIView *canvasView;
+@property (nonatomic, strong) UIBarButtonItem *titleLabel;
 @property (nonatomic, copy) FBModalCompletionHandler handler;
 @property (nonatomic) BOOL autoDismiss;
 @property (nonatomic) BOOL dismissAnimated;
@@ -53,28 +53,16 @@
     if (self) {
         // We do this at init-time rather than in viewDidLoad so the caller can change the buttons if
         // they want prior to the view loading.
-        self.cancelButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel 
+        self.cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel 
                                                                            target:self 
-                                                                           action:@selector(cancelButtonPressed:)] 
-                             autorelease];
-        self.doneButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone 
+                                                                           action:@selector(cancelButtonPressed:)];
+        self.doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone 
                                                                          target:self 
-                                                                         action:@selector(doneButtonPressed:)] 
-                           autorelease];
+                                                                         action:@selector(doneButtonPressed:)];
     }
     return self;
 }
 
-- (void)dealloc {
-    [super dealloc];
-    
-    [_cancelButton release];
-    [_doneButton release];
-    [_toolbar release];
-    [_canvasView release];
-    [_titleLabel release];
-    [_handler release];
-}
 
 #pragma mark View lifecycle
 
@@ -83,7 +71,7 @@
     
     self.view.autoresizesSubviews = YES;
     
-    self.canvasView = [[[UIView alloc] init] autorelease];
+    self.canvasView = [[UIView alloc] init];
     [self.canvasView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
 
     self.canvasView.frame = self.view.bounds;
@@ -146,7 +134,7 @@
     if (needBar) {
         // If we need a bar but don't have one, create it.
         if (self.toolbar == nil) {
-            self.toolbar = [[[UIToolbar alloc] init] autorelease];
+            self.toolbar = [[UIToolbar alloc] init];
             self.toolbar.barStyle = UIBarStyleDefault;
             
             [self.toolbar setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
@@ -170,39 +158,36 @@
     } else {
         // No cancel button, but if we have a done and a title, add some space at the beginning to help center the title.
         if (self.doneButton != nil && self.title.length > 0) {
-            UIBarButtonItem *space = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace 
+            UIBarButtonItem *space = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace 
                                                                                     target:nil
-                                                                                    action:nil] 
-                                      autorelease];
+                                                                                    action:nil];
             [buttons addObject:space];
         }
     }
     if (self.title.length > 0) {
-        UIBarButtonItem *space = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace 
+        UIBarButtonItem *space = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace 
                                                                                 target:nil
-                                                                                action:nil] 
-                                  autorelease];
+                                                                                action:nil];
         [buttons addObject:space];
         
         if (self.titleLabel == nil) {
-            UILabel *label = [[[UILabel alloc] init] autorelease];
+            UILabel *label = [[UILabel alloc] init];
             label.font = [UIFont fontWithName:@"Helvetica-Bold" size:20];
             label.backgroundColor = [UIColor clearColor];
             label.textColor = [UIColor colorWithRed:255.0/255.0 green:255.0/255.0 blue:255.0/255.0 alpha:1.0];
             label.textAlignment = UITextAlignmentCenter;
             label.shadowColor = [UIColor colorWithWhite:0.0 alpha:0.5];
 
-            self.titleLabel = [[[UIBarButtonItem alloc] initWithCustomView:label] autorelease];
+            self.titleLabel = [[UIBarButtonItem alloc] initWithCustomView:label];
         }
         [(UILabel*)self.titleLabel.customView setText:self.title];
         [self.titleLabel.customView sizeToFit];
         
         [buttons addObject:self.titleLabel];
         
-        space = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace 
+        space = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace 
                                                                target:nil
-                                                               action:nil] 
-                                  autorelease];
+                                                               action:nil];
         [buttons addObject:space];
         
     }
@@ -210,20 +195,18 @@
     if (self.doneButton != nil) {
         // If no title, we need a space to right-align
         if (self.title.length == 0) {
-            UIBarButtonItem *space = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace 
+            UIBarButtonItem *space = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace 
                                                                                     target:nil
-                                                                                    action:nil] 
-                                      autorelease];
+                                                                                    action:nil];
             [buttons addObject:space];
         }
         [buttons addObject:self.doneButton];
     } else {
         // No done button, but if we have a cancel and a title, add some space at the end to help center the title.
         if (self.cancelButton != nil && self.title.length > 0) {
-            UIBarButtonItem *space = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace 
+            UIBarButtonItem *space = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace 
                                                                                     target:nil
-                                                                                    action:nil] 
-                                      autorelease];
+                                                                                    action:nil];
             [buttons addObject:space];
         }
     }
@@ -249,16 +232,14 @@
 
 - (void)setCancelButton:(UIBarButtonItem *)cancelButton {
     if (_cancelButton != cancelButton) {
-        [_cancelButton release];
-        _cancelButton = [cancelButton retain];
+        _cancelButton = cancelButton;
         [self updateBar];
     }
 }
 
 - (void)setDoneButton:(UIBarButtonItem *)doneButton {
     if (_doneButton != doneButton) {
-        [_doneButton release];
-        _doneButton = [doneButton retain];
+        _doneButton = doneButton;
         [self updateBar];
     }
 }

@@ -26,7 +26,7 @@
 @property (nonatomic) BOOL boldTitleSuffix;
 
 @property (copy, nonatomic) NSString *subtitle;
-@property (retain, nonatomic) UIImage *picture;
+@property (strong, nonatomic) UIImage *picture;
 
 + (CGFloat)rowHeight;
 

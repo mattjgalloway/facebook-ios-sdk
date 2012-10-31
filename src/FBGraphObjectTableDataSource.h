@@ -24,15 +24,15 @@
 
 @interface FBGraphObjectTableDataSource : NSObject<UITableViewDataSource>
 
-@property (nonatomic, retain) UIImage *defaultPicture;
-@property (nonatomic, assign) id<FBGraphObjectViewControllerDelegate> controllerDelegate;
+@property (nonatomic, strong) UIImage *defaultPicture;
+@property (nonatomic, unsafe_unretained) id<FBGraphObjectViewControllerDelegate> controllerDelegate;
 @property (nonatomic, copy) NSString *groupByField;
 @property (nonatomic, assign) BOOL useCollation;
 @property (nonatomic) BOOL itemTitleSuffixEnabled;
 @property (nonatomic) BOOL itemPicturesEnabled;
 @property (nonatomic) BOOL itemSubtitleEnabled;
-@property (nonatomic, assign) id<FBGraphObjectSelectionQueryDelegate> selectionDelegate;
-@property (nonatomic, assign) id<FBGraphObjectDataSourceDataNeededDelegate> dataNeededDelegate;
+@property (nonatomic, unsafe_unretained) id<FBGraphObjectSelectionQueryDelegate> selectionDelegate;
+@property (nonatomic, unsafe_unretained) id<FBGraphObjectDataSourceDataNeededDelegate> dataNeededDelegate;
 @property (nonatomic, copy) NSArray *sortDescriptors;
 
 - (NSString *)fieldsForRequestIncluding:(NSSet *)customFields, ...;

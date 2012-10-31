@@ -119,7 +119,7 @@ typedef void (^FBRequestHandler)(FBRequestConnection *connection,
  this property has been set, no more <FBRequest> objects can be added to this
  `FBRequestConnection`.
 */
-@property(nonatomic, retain, readwrite) NSMutableURLRequest *urlRequest;
+@property(nonatomic, strong, readwrite) NSMutableURLRequest *urlRequest;
 
 /*!
  @abstract
@@ -132,7 +132,7 @@ typedef void (^FBRequestHandler)(FBRequestConnection *connection,
  The property is nil until the request completes.  If there was a response
  then this property will be non-nil during the FBRequestHandler callback.
 */
-@property(nonatomic, retain, readonly) NSHTTPURLResponse *urlResponse; 
+@property(nonatomic, strong, readonly) NSHTTPURLResponse *urlResponse; 
 
 /*!
  @methodgroup Adding requests

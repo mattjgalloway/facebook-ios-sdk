@@ -108,16 +108,6 @@ static NSString *const kPostHTTPMethod = @"POST";
     return self;
 }
 
-- (void)dealloc
-{
-    [_graphObject release];
-    [_session release];
-    [_graphPath release];
-    [_restMethod release];
-    [_HTTPMethod release];
-    [_parameters release];
-    [super dealloc];
-}
 
 //@property(nonatomic,retain) id<FBGraphObject> graphObject;
 - (id<FBGraphObject>)graphObject {
@@ -126,8 +116,7 @@ static NSString *const kPostHTTPMethod = @"POST";
 
 - (void)setGraphObject:(id<FBGraphObject>)newValue {
     if (_graphObject != newValue) {
-        [_graphObject release];
-        _graphObject = [newValue retain];
+        _graphObject = newValue;
     }
     
     // setting this property implies you want a post, if you really
@@ -137,26 +126,24 @@ static NSString *const kPostHTTPMethod = @"POST";
 
 - (FBRequestConnection*)startWithCompletionHandler:(FBRequestHandler)handler
 {
-    FBRequestConnection *connection = [[[FBRequestConnection alloc] init] autorelease];
+    FBRequestConnection *connection = [[FBRequestConnection alloc] init];
     [connection addRequest:self completionHandler:handler];
     [connection start];
     return connection;
 }
 
 + (FBRequest*)requestForMe {
-    return [[[FBRequest alloc] initWithSession:[FBSession activeSessionIfOpen]
-                                     graphPath:@"me"]
-            autorelease];
+    return [[FBRequest alloc] initWithSession:[FBSession activeSessionIfOpen]
+                                     graphPath:@"me"];
 }
 
 + (FBRequest*)requestForMyFriends {
-    return [[[FBRequest alloc] initWithSession:[FBSession activeSessionIfOpen]
+    return [[FBRequest alloc] initWithSession:[FBSession activeSessionIfOpen]
                                      graphPath:@"me/friends"
                                     parameters:[NSDictionary dictionaryWithObjectsAndKeys:
                                                 @"id,name,username,first_name,last_name", @"fields",
                                                 nil]
-                                    HTTPMethod:nil]
-            autorelease];
+                                    HTTPMethod:nil];
 }
 
 + (FBRequest *)requestForUploadPhoto:(UIImage *)photo
@@ -165,33 +152,29 @@ static NSString *const kPostHTTPMethod = @"POST";
     NSMutableDictionary *parameters = [[NSMutableDictionary alloc] init];
     [parameters setObject:photo forKey:@"picture"];
     
-    FBRequest *request = [[[FBRequest alloc] initWithSession:[FBSession activeSessionIfOpen]
+    FBRequest *request = [[FBRequest alloc] initWithSession:[FBSession activeSessionIfOpen]
                                                    graphPath:graphPath
                                                   parameters:parameters
-                                                  HTTPMethod:@"POST"]
-                          autorelease];
+                                                  HTTPMethod:@"POST"];
     
-    [parameters release];
     
     return request;
 }
 
 + (FBRequest*)requestForGraphPath:(NSString*)graphPath
 {
-    FBRequest *request = [[[FBRequest alloc] initWithSession:[FBSession activeSessionIfOpen]
+    FBRequest *request = [[FBRequest alloc] initWithSession:[FBSession activeSessionIfOpen]
                                                    graphPath:graphPath
                                                   parameters:nil
-                                                  HTTPMethod:nil]
-                          autorelease];
+                                                  HTTPMethod:nil];
     return request;
 }
 
 + (FBRequest*)requestForPostWithGraphPath:(NSString*)graphPath
                               graphObject:(id<FBGraphObject>)graphObject {
-    return [[[FBRequest alloc] initForPostWithSession:[FBSession activeSessionIfOpen]
+    return [[FBRequest alloc] initForPostWithSession:[FBSession activeSessionIfOpen]
                                             graphPath:graphPath
-                                          graphObject:graphObject]
-            autorelease];
+                                          graphObject:graphObject];
 }
 
 + (FBRequest *)requestForPostStatusUpdate:(NSString *)message {
@@ -232,11 +215,10 @@ static NSString *const kPostHTTPMethod = @"POST";
 + (FBRequest*)requestWithGraphPath:(NSString*)graphPath
                         parameters:(NSDictionary*)parameters
                         HTTPMethod:(NSString*)HTTPMethod {
-    return [[[FBRequest alloc] initWithSession:[FBSession activeSessionIfOpen]
+    return [[FBRequest alloc] initWithSession:[FBSession activeSessionIfOpen]
                                      graphPath:graphPath
                                     parameters:parameters
-                                    HTTPMethod:HTTPMethod]
-            autorelease];
+                                    HTTPMethod:HTTPMethod];
 }
 
 + (FBRequest*)requestForPlacesSearchAtCoordinate:(CLLocationCoordinate2D)coordinate
@@ -254,12 +236,10 @@ static NSString *const kPostHTTPMethod = @"POST";
         [parameters setObject:searchText forKey:@"q"];
     }
     
-    FBRequest *request = [[[FBRequest alloc] initWithSession:[FBSession activeSessionIfOpen]
+    FBRequest *request = [[FBRequest alloc] initWithSession:[FBSession activeSessionIfOpen]
                                                    graphPath:@"search"
                                                   parameters:parameters
-                                                  HTTPMethod:nil]
-                          autorelease];
-    [parameters release];
+                                                  HTTPMethod:nil];
     
     return request;
 }
@@ -290,7 +270,6 @@ static NSString *const kPostHTTPMethod = @"POST";
 
 - (void)setUrl:(NSString*)newValue {
     if (_url != newValue) {
-        [_url release];
         _url = [newValue copy];
     }
 }
@@ -311,8 +290,7 @@ static NSString *const kPostHTTPMethod = @"POST";
 
 - (void)setParams:(NSMutableDictionary*)newValue {
     if (_parameters != newValue) {
-        [_parameters release];
-        _parameters = [newValue retain];
+        _parameters = newValue;
     }
 }
 
@@ -323,8 +301,7 @@ static NSString *const kPostHTTPMethod = @"POST";
 
 - (void)setConnection:(NSURLConnection*)newValue {
     if (_connection != newValue) {
-        [_connection release];
-        _connection = [newValue retain];
+        _connection = newValue;
     }
 }
 
@@ -335,8 +312,7 @@ static NSString *const kPostHTTPMethod = @"POST";
 
 - (void)setResponseText:(NSMutableData*)newValue {
     if (_responseText != newValue) {
-        [_responseText release];
-        _responseText = [newValue retain];
+        _responseText = newValue;
     }
 }
 
@@ -347,8 +323,7 @@ static NSString *const kPostHTTPMethod = @"POST";
 
 - (void)setError:(NSError*)newValue {
     if (_error != newValue) {
-        [_error release];
-        _error = [newValue retain];
+        _error = newValue;
     }
 }
 

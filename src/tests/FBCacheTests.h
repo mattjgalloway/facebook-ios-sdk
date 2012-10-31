@@ -24,6 +24,6 @@
     NSString* _dataCachePath;
 }
 
-@property (retain, nonatomic) NSString* dataCachePath;
+@property (strong, nonatomic) NSString* dataCachePath;
 
 @end

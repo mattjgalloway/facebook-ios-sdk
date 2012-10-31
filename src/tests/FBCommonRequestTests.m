@@ -150,11 +150,10 @@
                                 session.testUserID, @"uids",
                                 @"uid,name", @"fields",
                                 nil];
-    FBRequest *request = [[[FBRequest alloc] initWithSession:session
+    FBRequest *request = [[FBRequest alloc] initWithSession:session
                                                   restMethod:@"users.getInfo"
                                                   parameters:parameters
-                                                  HTTPMethod:nil] 
-                          autorelease];
+                                                  HTTPMethod:nil];
 
     NSArray *responses = [self sendRequests:request, nil];
     STAssertNotNil(responses, @"responses");
@@ -170,7 +169,7 @@
 
 - (NSArray *)sendRequests:(FBRequest *)firstRequest, ...
 {
-    NSMutableArray *requests = [[[NSMutableArray alloc] init] autorelease];
+    NSMutableArray *requests = [[NSMutableArray alloc] init];
 
     [requests addObject:firstRequest];
 
@@ -187,9 +186,9 @@
 
 - (NSArray *)sendRequestArray:(NSArray *)requests
 {
-    NSMutableArray *results = [[[NSMutableArray alloc] init] autorelease];
-    FBTestBlocker *blocker = [[[FBTestBlocker alloc] init] autorelease];
-    FBRequestConnection *connection = [[[FBRequestConnection alloc] init] autorelease];
+    NSMutableArray *results = [[NSMutableArray alloc] init];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
+    FBRequestConnection *connection = [[FBRequestConnection alloc] init];
     FBRequestHandler handler =
         ^(FBRequestConnection *connection, id result, NSError *error) {
             // Validate that we can assume in unit test that errors and results

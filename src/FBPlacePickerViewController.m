@@ -39,10 +39,10 @@ static NSString *defaultImageName = @"FacebookSDKResources.bundle/FBPlacePickerV
                                             FBGraphObjectViewControllerDelegate,
                                             FBGraphObjectPagingLoaderDelegate>
 
-@property (nonatomic, retain) FBGraphObjectTableDataSource *dataSource;
-@property (nonatomic, retain) FBGraphObjectTableSelection *selectionManager;
-@property (nonatomic, retain) FBGraphObjectPagingLoader *loader;
-@property (nonatomic, retain) NSTimer *searchTextChangedTimer;
+@property (nonatomic, strong) FBGraphObjectTableDataSource *dataSource;
+@property (nonatomic, strong) FBGraphObjectTableSelection *selectionManager;
+@property (nonatomic, strong) FBGraphObjectPagingLoader *loader;
+@property (nonatomic, strong) NSTimer *searchTextChangedTimer;
 @property (nonatomic) BOOL trackActiveSession;
 
 - (void)initialize;
@@ -113,23 +113,20 @@ static NSString *defaultImageName = @"FacebookSDKResources.bundle/FBPlacePickerV
 - (void)initialize
 {
     // Data Source
-    FBGraphObjectTableDataSource *dataSource = [[[FBGraphObjectTableDataSource alloc]
-                                                 init]
-                                                autorelease];
+    FBGraphObjectTableDataSource *dataSource = [[FBGraphObjectTableDataSource alloc]
+                                                 init];
     dataSource.defaultPicture = [UIImage imageNamed:defaultImageName];
     dataSource.controllerDelegate = self;
     dataSource.itemSubtitleEnabled = YES;
 
     // Selection Manager
-    FBGraphObjectTableSelection *selectionManager = [[[FBGraphObjectTableSelection alloc]
-                                                      initWithDataSource:dataSource]
-                                                     autorelease];
+    FBGraphObjectTableSelection *selectionManager = [[FBGraphObjectTableSelection alloc]
+                                                      initWithDataSource:dataSource];
     selectionManager.delegate = self;
 
     // Paging loader
-    id loader = [[[FBGraphObjectPagingLoader alloc] initWithDataSource:dataSource
-                                                            pagingMode:FBGraphObjectPagingModeAsNeeded]
-                 autorelease];
+    id loader = [[FBGraphObjectPagingLoader alloc] initWithDataSource:dataSource
+                                                            pagingMode:FBGraphObjectPagingModeAsNeeded];
     self.loader = loader;
     self.loader.delegate = self;
 
@@ -148,22 +145,12 @@ static NSString *defaultImageName = @"FacebookSDKResources.bundle/FBPlacePickerV
 {
     [_loader cancel];
     _loader.delegate = nil;
-    [_loader release];
     
     _dataSource.controllerDelegate = nil;
 
-    [_dataSource release];
-    [_fieldsForRequest release];
-    [_searchText release];
-    [_searchTextChangedTimer release];
-    [_selectionManager release];
-    [_spinner release];
-    [_tableView release];
     
     [self removeSessionObserver:_session];
-    [_session release];
     
-    [super dealloc];
 }
 
 #pragma mark - Custom Properties
@@ -192,8 +179,7 @@ static NSString *defaultImageName = @"FacebookSDKResources.bundle/FBPlacePickerV
     if (session != _session) {
         [self removeSessionObserver:_session];
         
-        [_session release];
-        _session = [session retain];
+        _session = session;
 
         [self addSessionObserver:session];
 
@@ -257,12 +243,11 @@ static NSString *defaultImageName = @"FacebookSDKResources.bundle/FBPlacePickerV
                                                resultsLimit:(NSInteger)resultsLimit
                                            fieldsForRequest:(NSSet*)fieldsForRequest {
 
-    return [[[FBPlacePickerCacheDescriptor alloc] initWithLocationCoordinate:locationCoordinate
+    return [[FBPlacePickerCacheDescriptor alloc] initWithLocationCoordinate:locationCoordinate
                                                               radiusInMeters:radiusInMeters
                                                                   searchText:searchText
                                                                 resultsLimit:resultsLimit
-                                                            fieldsForRequest:fieldsForRequest]
-            autorelease];
+                                                            fieldsForRequest:fieldsForRequest];
 }
 
 #pragma mark - private methods
@@ -275,7 +260,7 @@ static NSString *defaultImageName = @"FacebookSDKResources.bundle/FBPlacePickerV
     CGRect bounds = self.canvasView.bounds;
 
     if (!self.tableView) {
-        UITableView *tableView = [[[UITableView alloc] initWithFrame:bounds] autorelease];
+        UITableView *tableView = [[UITableView alloc] initWithFrame:bounds];
         tableView.autoresizingMask =
             UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         
@@ -284,9 +269,8 @@ static NSString *defaultImageName = @"FacebookSDKResources.bundle/FBPlacePickerV
     }
 
     if (!self.spinner) {
-        UIActivityIndicatorView *spinner = [[[UIActivityIndicatorView alloc]
-                                             initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray]
-                                            autorelease];
+        UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc]
+                                             initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
         spinner.hidesWhenStopped = YES;
         // We want user to be able to scroll while we load.
         spinner.userInteractionEnabled = NO;
@@ -459,7 +443,6 @@ static NSString *defaultImageName = @"FacebookSDKResources.bundle/FBPlacePickerV
         NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
         [numberFormatter setNumberStyle:NSNumberFormatterDecimalStyle];
         NSString *wereHere = [numberFormatter stringFromNumber:wereHereCount];
-        [numberFormatter release];
         
         if (category) {
             return [NSString stringWithFormat:@"%@ • %@ were here", [category capitalizedString], wereHere];

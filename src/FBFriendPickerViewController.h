@@ -82,13 +82,13 @@ typedef enum {
  @abstract
  Returns an outlet for the spinner used in the view controller.
  */
-@property (nonatomic, retain) IBOutlet UIActivityIndicatorView *spinner;
+@property (nonatomic, strong) IBOutlet UIActivityIndicatorView *spinner;
 
 /*!
  @abstract
  Returns an outlet for the table view managed by the view controller.
  */
-@property (nonatomic, retain) IBOutlet UITableView *tableView;
+@property (nonatomic, strong) IBOutlet UITableView *tableView;
 
 /*!
  @abstract
@@ -112,7 +112,7 @@ typedef enum {
  @abstract
  The session that is used in the request for friend data.
  */
-@property (nonatomic, retain) FBSession *session;
+@property (nonatomic, strong) FBSession *session;
 
 /*!
  @abstract
@@ -125,7 +125,7 @@ typedef enum {
  The list of friends that are currently selected in the veiw.
  The items in the array are <FBGraphUser> objects.
  */
-@property (nonatomic, retain, readonly) NSArray *selection;
+@property (nonatomic, strong, readonly) NSArray *selection;
 
 /*!
  @abstract

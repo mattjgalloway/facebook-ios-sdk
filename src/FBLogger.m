@@ -25,7 +25,7 @@ static NSMutableDictionary *g_startTimesWithTags = nil;
 
 @interface FBLogger ()
 
-@property (nonatomic, retain, readonly) NSMutableString *internalContents;
+@property (nonatomic, strong, readonly) NSMutableString *internalContents;
 
 @end
 
@@ -51,10 +51,6 @@ static NSMutableDictionary *g_startTimesWithTags = nil;
     return self;
 }
 
-- (void)dealloc {
-    [_internalContents release];
-    [super dealloc];
-}
 
 // Public properties
 
@@ -64,7 +60,6 @@ static NSMutableDictionary *g_startTimesWithTags = nil;
 
 - (void)setContents:(NSString *)contents {
     if (_isActive) {
-        [_internalContents release];
         _internalContents = [NSMutableString stringWithString:contents];
     }
 }
@@ -81,7 +76,7 @@ static NSMutableDictionary *g_startTimesWithTags = nil;
     if (_isActive) {
         va_list vaArguments;
         va_start(vaArguments, formatString);
-        NSString *logString = [[[NSString alloc] initWithFormat:formatString arguments:vaArguments] autorelease];
+        NSString *logString = [[NSString alloc] initWithFormat:formatString arguments:vaArguments];
         va_end(vaArguments);
         
         [self appendString:logString];        
@@ -129,7 +124,6 @@ static NSMutableDictionary *g_startTimesWithTags = nil;
         FBLogger *logger = [[FBLogger alloc] initWithLoggingBehavior:loggingBehavior];
         [logger appendString:logEntry];
         [logger emitToNSLog];
-        [logger release];
     }
 }
 
@@ -139,7 +133,7 @@ static NSMutableDictionary *g_startTimesWithTags = nil;
     if ([[FBSettings loggingBehavior] containsObject:loggingBehavior]) {
         va_list vaArguments;
         va_start(vaArguments, formatString);                                                                                
-        NSString *logString = [[[NSString alloc] initWithFormat:formatString arguments:vaArguments] autorelease];
+        NSString *logString = [[NSString alloc] initWithFormat:formatString arguments:vaArguments];
         va_end(vaArguments);
 
         [self singleShotLogEntry:loggingBehavior logEntry:logString];
@@ -154,19 +148,19 @@ static NSMutableDictionary *g_startTimesWithTags = nil;
     if ([[FBSettings loggingBehavior] containsObject:loggingBehavior]) {
         va_list vaArguments;
         va_start(vaArguments, formatString);  
-        NSString *logString = [[[NSString alloc] initWithFormat:formatString arguments:vaArguments] autorelease];
+        NSString *logString = [[NSString alloc] initWithFormat:formatString arguments:vaArguments];
         va_end(vaArguments);
         
         // Start time of this "timestampTag" is stashed in the dictionary.
         // Treat the incoming object tag simply as an address, since it's only used to identify during lifetime.  If
         // we send in as an object, the dictionary will try to copy it.
-        NSNumber *tagAsNumber = [NSNumber numberWithUnsignedLong:(unsigned long)(void *)timestampTag];
-        NSNumber *startTimeNumber = [g_startTimesWithTags objectForKey:tagAsNumber];
+        NSValue *tagAsValue = [NSValue valueWithPointer:(__bridge const void *)(timestampTag)];
+        NSNumber *startTimeNumber = [g_startTimesWithTags objectForKey:tagAsValue];
         
         // Only log if there's been an associated start time.
         if (startTimeNumber) {
             unsigned long elapsed = [FBUtility currentTimeInMilliseconds] - startTimeNumber.unsignedLongValue;
-            [g_startTimesWithTags removeObjectForKey:tagAsNumber];  // served its purpose, remove
+            [g_startTimesWithTags removeObjectForKey:tagAsValue];  // served its purpose, remove
             
             // Log string is appended with "%d msec", with nothing intervening.  This gives the most control to the caller.
             logString = [NSString stringWithFormat:@"%@%lu msec", logString, elapsed];
@@ -192,9 +186,9 @@ static NSMutableDictionary *g_startTimesWithTags = nil;
         
         // Treat the incoming object tag simply as an address, since it's only used to identify during lifetime.  If
         // we send in as an object, the dictionary will try to copy it.
-        unsigned long tagAsNumber = (unsigned long)(void *)timestampTag;
+        NSValue *tagAsValue = [NSValue valueWithPointer:(__bridge const void *)(timestampTag)];
         [g_startTimesWithTags setObject:[NSNumber numberWithUnsignedLong:currTime]
-                                 forKey:[NSNumber numberWithUnsignedLong:tagAsNumber]];
+                                 forKey:tagAsValue];
     }
 }
 

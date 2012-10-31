@@ -65,7 +65,7 @@ typedef void (^KeyValueActionHandler)(NSString *key, id value);
 //
 @interface FBRequestMetadata : NSObject
 
-@property (nonatomic, retain) FBRequest *request;
+@property (nonatomic, strong) FBRequest *request;
 @property (nonatomic, copy) FBRequestHandler completionHandler;
 @property (nonatomic, copy) NSString *batchEntryName;
 
@@ -93,12 +93,6 @@ typedef void (^KeyValueActionHandler)(NSString *key, id value);
     return self;
 }
 
-- (void) dealloc {
-    [_request release];
-    [_completionHandler release];
-    [_batchEntryName release];
-    [super dealloc];
-}
 
 - (NSString*)description {
     return [NSString stringWithFormat:@"<%@: %p, batchEntryName: %@, completionHandler: %p, request: %@>",
@@ -127,14 +121,14 @@ typedef enum FBRequestConnectionState {
 
 @interface FBRequestConnection ()
 
-@property (nonatomic, retain) FBURLConnection *connection;
-@property (nonatomic, retain) NSMutableArray *requests;
+@property (nonatomic, strong) FBURLConnection *connection;
+@property (nonatomic, strong) NSMutableArray *requests;
 @property (nonatomic) FBRequestConnectionState state;
 @property (nonatomic) NSTimeInterval timeout;
-@property (nonatomic, retain) NSMutableURLRequest *internalUrlRequest;
-@property (nonatomic, retain, readwrite) NSHTTPURLResponse *urlResponse;
-@property (nonatomic, retain) FBRequest *deprecatedRequest;
-@property (nonatomic, retain) FBLogger *logger;
+@property (nonatomic, strong) NSMutableURLRequest *internalUrlRequest;
+@property (nonatomic, strong, readwrite) NSHTTPURLResponse *urlResponse;
+@property (nonatomic, strong) FBRequest *deprecatedRequest;
+@property (nonatomic, strong) FBLogger *logger;
 @property (nonatomic) unsigned long requestStartTime;
 @property (nonatomic, readonly) BOOL isResultFromCache;
 
@@ -281,13 +275,6 @@ typedef enum FBRequestConnectionState {
 - (void)dealloc
 {
     [_connection cancel];
-    [_connection release];
-    [_requests release];
-    [_internalUrlRequest release];
-    [_urlResponse release];
-    [_deprecatedRequest release];
-    [_logger release];
-    [super dealloc];
 }
 
 // ----------------------------------------------------------------------------
@@ -310,7 +297,6 @@ typedef enum FBRequestConnectionState {
                                                            completionHandler:handler
                                                               batchEntryName:name];
     [self.requests addObject:metadata];
-    [metadata release];
 }
 
 - (void)start
@@ -322,11 +308,13 @@ typedef enum FBRequestConnectionState {
 - (void)cancel {
     // Cancelling self.connection might trigger error handlers that cause us to
     // get freed. Make sure we stick around long enough to finish this method call.
-    [[self retain] autorelease];
+    id retainSelf = self;
     
     [self.connection cancel];
     self.connection = nil;
     self.state = kStateCancelled;
+    
+    retainSelf = nil;
 }
 
 // ----------------------------------------------------------------------------
@@ -437,10 +425,9 @@ typedef enum FBRequestConnectionState {
         // normalized form for our identification scheme than this URL construction; given the only
         // clients are the two pickers -- this scheme achieves stability via being a closed system,
         // and provides a simple first step to the more general solution
-        cacheIdentityURL = [[[NSURL alloc] initWithScheme:@"FBRequestCache"
+        cacheIdentityURL = [[NSURL alloc] initWithScheme:@"FBRequestCache"
                                                      host:cacheIdentity
-                                                     path:[NSString stringWithFormat:@"/%@", request.URL]]
-                            autorelease];
+                                                     path:[NSString stringWithFormat:@"/%@", request.URL]];
         
         if (skipRoundtripIfCached) {
             cachedData = [[FBDataDiskCache sharedCache] dataForURL:cacheIdentityURL];
@@ -510,7 +497,6 @@ typedef enum FBRequestConnectionState {
                                                          skipRoundTripIfCached:NO
                                                              completionHandler:handler];
         self.connection = connection;
-        [connection release];
     } else {
         _isResultFromCache = YES;
         
@@ -596,7 +582,6 @@ typedef enum FBRequestConnectionState {
                     addFormData:NO
                          logger:attachmentLogger];
         
-        [attachments release];
         
         request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:kGraphURL]
                                           cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
@@ -606,7 +591,6 @@ typedef enum FBRequestConnectionState {
 
     [request setHTTPBody:[body data]];
     NSUInteger bodyLength = [[body data] length] / 1024;
-    [body release];
 
     [request setValue:[FBRequestConnection userAgent] forHTTPHeaderField:@"User-Agent"];
     [request setValue:[FBRequestBody mimeContentType] forHTTPHeaderField:@"Content-Type"];
@@ -614,8 +598,6 @@ typedef enum FBRequestConnectionState {
     [self logRequest:request bodyLength:bodyLength bodyLogger:bodyLogger attachmentLogger:attachmentLogger];
     
     // Safely release now that everything's serialized into the logger.
-    [bodyLogger release];
-    [attachmentLogger release];
     
     return request;
 }
@@ -726,8 +708,6 @@ typedef enum FBRequestConnectionState {
     
     FBSBJSON *writer = [[FBSBJSON alloc] init];
     NSString *jsonBatch = [writer stringWithObject:batch];
-    [writer release];
-    [batch release];
 
     [body appendWithKey:kBatchKey formValue:jsonBatch logger:logger];
 }
@@ -741,7 +721,7 @@ typedef enum FBRequestConnectionState {
            toBatch:(NSMutableArray *)batch
        attachments:(NSDictionary *)attachments
 {
-    NSMutableDictionary *requestElement = [[[NSMutableDictionary alloc] init] autorelease];
+    NSMutableDictionary *requestElement = [[NSMutableDictionary alloc] init];
 
     if (metadata.batchEntryName) {
         [requestElement setObject:metadata.batchEntryName forKey:@"name"];
@@ -775,7 +755,7 @@ typedef enum FBRequestConnectionState {
     
     // if we have a post object, also roll that into the body 
     if (metadata.request.graphObject) {
-        NSMutableString *bodyValue = [[[NSMutableString alloc] init] autorelease];
+        NSMutableString *bodyValue = [[NSMutableString alloc] init];
         __block NSString *delimiter = @"";
         [FBRequestConnection
          processGraphObject:metadata.request.graphObject
@@ -1015,17 +995,17 @@ typedef enum FBRequestConnectionState {
     } else if ([self.requests count] == 1) {
         // response is the entry, so put it in a dictionary under "body" and add
         // that to array of responses.
-        NSMutableDictionary *result = [[[NSMutableDictionary alloc] init] autorelease];
+        NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
         [result setObject:[NSNumber numberWithInt:statusCode] forKey:@"code"];
         [result setObject:response forKey:@"body"];
 
-        NSMutableArray *mutableResults = [[[NSMutableArray alloc] init] autorelease];
+        NSMutableArray *mutableResults = [[NSMutableArray alloc] init];
         [mutableResults addObject:result];
         results = mutableResults;
     } else if ([response isKindOfClass:[NSArray class]]) {
         // response is the array of responses, but the body element of each needs
         // to be decoded from JSON.
-        NSMutableArray *mutableResults = [[[NSMutableArray alloc] init] autorelease];
+        NSMutableArray *mutableResults = [[NSMutableArray alloc] init];
         for (id item in response) {
             // Don't let errors parsing one response stop us from parsing another.
             NSError *batchResultError = nil;
@@ -1033,7 +1013,7 @@ typedef enum FBRequestConnectionState {
                 [mutableResults addObject:item];
             } else {
                 NSDictionary *itemDictionary = (NSDictionary *)item;
-                NSMutableDictionary *result = [[[NSMutableDictionary alloc] init] autorelease];
+                NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
                 for (NSString *key in [itemDictionary keyEnumerator]) {
                     id value = [itemDictionary objectForKey:key];
                     if ([key isEqualToString:@"body"]) {
@@ -1059,7 +1039,6 @@ typedef enum FBRequestConnectionState {
                              message:nil];
     }
 
-    [responseUTF8 release];
     return results;
 }
 
@@ -1085,7 +1064,6 @@ typedef enum FBRequestConnectionState {
                 *error = nil;
             }
         }
-        [parser release];
     }
     return parsed;
 }
@@ -1171,7 +1149,6 @@ typedef enum FBRequestConnectionState {
             [FBRequestConnection addRequestToExtendTokenForSession:metadata.request.session 
                                                         connection:connection];
             [connection start];
-            [connection release];
         }
 
         if (metadata.completionHandler) {
@@ -1212,7 +1189,7 @@ typedef enum FBRequestConnectionState {
             [dictionary objectForKey:@"error_msg"] ||
             [dictionary objectForKey:@"error_reason"]) {
 
-            NSMutableDictionary *userInfo = [[[NSMutableDictionary alloc] init] autorelease];
+            NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
             [userInfo addEntriesFromDictionary:dictionary];
             return [self errorWithCode:FBErrorRequestConnectionApi
                             statusCode:200
@@ -1237,7 +1214,7 @@ typedef enum FBRequestConnectionState {
         parsedJSONResponse:(id)response
                 innerError:(NSError*)innerError
                    message:(NSString*)message {
-    NSMutableDictionary *userInfo = [[[NSMutableDictionary alloc] init] autorelease];
+    NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
     [userInfo setObject:[NSNumber numberWithInt:statusCode] forKey:FBErrorHTTPStatusCodeKey];
 
     if (response) {
@@ -1253,11 +1230,10 @@ typedef enum FBRequestConnectionState {
                      forKey:NSLocalizedDescriptionKey];
     }
     
-    NSError *error = [[[NSError alloc]
+    NSError *error = [[NSError alloc]
                        initWithDomain:FacebookSDKDomain
                        code:code
-                       userInfo:userInfo]
-                      autorelease];
+                       userInfo:userInfo];
     
     return error;
 }
@@ -1348,7 +1324,7 @@ typedef enum FBRequestConnectionState {
     static NSString *agent = nil;
 
     if (!agent) {
-        agent = [[NSString stringWithFormat:@"%@.%@", kUserAgentBase, FB_IOS_SDK_VERSION_STRING] retain];
+        agent = [NSString stringWithFormat:@"%@.%@", kUserAgentBase, FB_IOS_SDK_VERSION_STRING];
     }
 
     return agent;
@@ -1374,7 +1350,6 @@ typedef enum FBRequestConnectionState {
         }
     }
     
-    [sessions release];
 }
 
 + (void)addRequestToExtendTokenForSession:(FBSession*)session connection:(FBRequestConnection*)connection
@@ -1409,7 +1384,6 @@ typedef enum FBRequestConnectionState {
                               expirationDate:expirationDate];
              }
          }];            
-    [request release];
 }
 
 #pragma mark Debugging helpers

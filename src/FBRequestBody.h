@@ -20,7 +20,7 @@
 
 @interface FBRequestBody : NSObject
 
-@property (nonatomic, retain, readonly) NSData *data;
+@property (nonatomic, strong, readonly) NSData *data;
 
 - (id)init;
 

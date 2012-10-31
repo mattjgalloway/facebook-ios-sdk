@@ -36,7 +36,7 @@
 @interface FBCacheIndex : NSObject
 {
 @private
-    id <FBCacheIndexFileDelegate> _delegate;
+    id <FBCacheIndexFileDelegate> __unsafe_unretained _delegate;
     
     NSCache* _cachedEntries;
   
@@ -57,7 +57,7 @@
 
 - (id)initWithCacheFolder:(NSString*)folderPath;
 
-@property (assign) id delegate;
+@property (unsafe_unretained) id delegate;
 @property (nonatomic, readonly) NSUInteger currentDiskUsage;
 @property (nonatomic, assign) NSUInteger diskCapacity;
 @property (nonatomic, assign) NSUInteger entryCacheCountLimit;

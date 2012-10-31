@@ -139,6 +139,7 @@
 		B9CC137515266BB800443948 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9CC137215266B9000443948 /* QuartzCore.framework */; };
 		B9DC7F40151AB56100DF1158 /* FBProfilePictureView.h in Headers */ = {isa = PBXBuildFile; fileRef = B9DC7F3E151AB56100DF1158 /* FBProfilePictureView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B9DC7F41151AB56100DF1158 /* FBProfilePictureView.m in Sources */ = {isa = PBXBuildFile; fileRef = B9DC7F3F151AB56100DF1158 /* FBProfilePictureView.m */; };
+		C99B278E164120F800911DDF /* FacebookSDK-UnitTestConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = C99B278D164120F800911DDF /* FacebookSDK-UnitTestConfig.plist */; };
 		DD6E197815A7A36900B96C9B /* FBSettings.m in Sources */ = {isa = PBXBuildFile; fileRef = DDB7C34B15A6181100C8DCE6 /* FBSettings.m */; };
 		DDB7C34C15A6181100C8DCE6 /* FBSettings.h in Headers */ = {isa = PBXBuildFile; fileRef = DDB7C34A15A6181100C8DCE6 /* FBSettings.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DDB7C34D15A6181100C8DCE6 /* FBSettings.m in Sources */ = {isa = PBXBuildFile; fileRef = DDB7C34B15A6181100C8DCE6 /* FBSettings.m */; };
@@ -280,6 +281,7 @@
 		B9CC137215266B9000443948 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		B9DC7F3E151AB56100DF1158 /* FBProfilePictureView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBProfilePictureView.h; sourceTree = "<group>"; };
 		B9DC7F3F151AB56100DF1158 /* FBProfilePictureView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBProfilePictureView.m; sourceTree = "<group>"; };
+		C99B278D164120F800911DDF /* FacebookSDK-UnitTestConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "FacebookSDK-UnitTestConfig.plist"; sourceTree = "<group>"; };
 		D2AAC07E0554694100DB518D /* libfacebook_ios_sdk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libfacebook_ios_sdk.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDB7C34A15A6181100C8DCE6 /* FBSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBSettings.h; sourceTree = "<group>"; };
 		DDB7C34B15A6181100C8DCE6 /* FBSettings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBSettings.m; sourceTree = "<group>"; };
@@ -532,6 +534,7 @@
 				B9CBC54915254CDE0036AA71 /* FacebookSDKTests-Info.plist */,
 				B9CBC54515254CCD0036AA71 /* InfoPlist.strings */,
 				B9CBC54815254CD40036AA71 /* FacebookSDKTests-Prefix.pch */,
+				C99B278D164120F800911DDF /* FacebookSDK-UnitTestConfig.plist */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -674,6 +677,7 @@
 				84D0A6561581A1A600A2FA5E /* FBPlacePickerCacheDescriptor.m in Resources */,
 				84D0A6581581A1C000A2FA5E /* FBPlacePickerCacheDescriptor.h in Resources */,
 				840F658C159B3A47005D41AA /* FBLoginView.h in Resources */,
+				C99B278E164120F800911DDF /* FacebookSDK-UnitTestConfig.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -818,6 +822,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = NO;
 				DSTROOT = /tmp/facebook_ios_sdk.dst;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -838,6 +843,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
 				DSTROOT = /tmp/facebook_ios_sdk.dst;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -890,6 +896,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -929,6 +936,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"\"$(SDKROOT)/Developer/Library/Frameworks\"",

@@ -188,7 +188,6 @@ static void releaseStatement(sqlite3_stmt* statement, sqlite3* database)
     
         if (!success) {
             NSAssert(NO, @"SQL Lite open/exec error.");
-            [self release];
             return nil;
         }
         
@@ -232,8 +231,6 @@ static void releaseStatement(sqlite3_stmt* statement, sqlite3* database)
     }
     
     _cachedEntries.delegate = nil;
-    [_cachedEntries release];
-    [super dealloc];
 }
 
 #pragma mark - Properties
@@ -255,7 +252,7 @@ static void releaseStatement(sqlite3_stmt* statement, sqlite3* database)
     FBCacheEntityInfo* entryInfo = [self _entryForKey:key];
     [entryInfo registerAccess];
     if (entryInfo) {
-        return [[entryInfo.uuid retain] autorelease];
+        return entryInfo.uuid;
     } else {
         return nil;
     }
@@ -265,7 +262,7 @@ static void releaseStatement(sqlite3_stmt* statement, sqlite3* database)
 {
     CFUUIDRef uuid = CFUUIDCreate(kCFAllocatorDefault);
     NSString* uuidString = 
-        (NSString*)CFUUIDCreateString(kCFAllocatorDefault, uuid);
+        (NSString*)CFBridgingRelease(CFUUIDCreateString(kCFAllocatorDefault, uuid));
     
     CFRelease(uuid);    
     FBCacheEntityInfo* entry = [[FBCacheEntityInfo alloc] 
@@ -287,9 +284,8 @@ static void releaseStatement(sqlite3_stmt* statement, sqlite3* database)
     [self.delegate cacheIndex:self writeFileWithName:uuidString data:data];
   
     [_cachedEntries setObject:entry forKey:key];
-    [entry release];
     
-    return [uuidString autorelease];
+    return uuidString;
 }
 
 - (void)removeEntryForKey:(NSString*)key
@@ -479,7 +475,7 @@ static void releaseStatement(sqlite3_stmt* statement, sqlite3* database)
         wildcardKeyFragment.length,
         nil), _database);
 
-    NSMutableArray *entries = [[[NSMutableArray alloc] init] autorelease];
+    NSMutableArray *entries = [[NSMutableArray alloc] init];
     FBCacheEntityInfo* entry;
 
     while ((entry = [self _createCacheEntityInfo:selectStatement]) != nil) {
@@ -513,7 +509,7 @@ static void releaseStatement(sqlite3_stmt* statement, sqlite3* database)
                                       encoding:NSUTF8StringEncoding]
                                 accessTime:accessTime 
                                 fileSize:fileSize];
-    return [entry autorelease];
+    return entry;
 }
 
 - (void)_fetchCurrentDiskUsage
@@ -689,11 +685,6 @@ static void releaseStatement(sqlite3_stmt* statement, sqlite3* database)
     return self;
 }
 
-- (void)dealloc {
-    [_uuid release];
-    [_key release];
-    [super dealloc];
-}
 
 - (void)registerAccess
 {

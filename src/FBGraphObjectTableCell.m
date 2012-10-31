@@ -29,9 +29,9 @@ static const CGFloat subtitleHeight = subtitleFontHeight * 1.25;
 
 @interface FBGraphObjectTableCell()
 
-@property (nonatomic, retain) UIImageView *pictureView;\
-@property (nonatomic, retain) UILabel* titleSuffixLabel;
-@property (nonatomic, retain) UIActivityIndicatorView *activityIndicator;
+@property (nonatomic, strong) UIImageView *pictureView;\
+@property (nonatomic, strong) UILabel* titleSuffixLabel;
+@property (nonatomic, strong) UIActivityIndicatorView *activityIndicator;
 
 - (void)updateFonts;
 
@@ -59,7 +59,6 @@ static const CGFloat subtitleHeight = subtitleFontHeight * 1.25;
         
         self.pictureView = pictureView;
         [self.contentView addSubview:pictureView];
-        [pictureView release];
         
         // Subtitle
         self.detailTextLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
@@ -77,13 +76,6 @@ static const CGFloat subtitleHeight = subtitleFontHeight * 1.25;
     return self;
 }
 
-- (void)dealloc
-{
-    [_titleSuffixLabel release];
-    [_pictureView release];
-    
-    [super dealloc];
-}
 
 #pragma mark -
 
@@ -138,7 +130,6 @@ static const CGFloat subtitleHeight = subtitleFontHeight * 1.25;
         
         self.activityIndicator = activityIndicator;
         [self addSubview:activityIndicator];
-        [activityIndicator release];        
     }
 
     self.activityIndicator.center = CGPointMake(CGRectGetMidX(cellBounds), CGRectGetMidY(cellBounds));
@@ -173,7 +164,6 @@ static const CGFloat subtitleHeight = subtitleFontHeight * 1.25;
         [self.contentView addSubview:titleSuffixLabel];
 
         self.titleSuffixLabel = titleSuffixLabel;
-        [titleSuffixLabel release];
     }
 }
 #pragma mark - Properties

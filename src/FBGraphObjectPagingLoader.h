@@ -32,10 +32,10 @@ typedef enum {
 
 @interface FBGraphObjectPagingLoader : NSObject<FBGraphObjectDataSourceDataNeededDelegate>
 
-@property (nonatomic, retain) UITableView *tableView;
-@property (nonatomic, retain) FBGraphObjectTableDataSource *dataSource;
-@property (nonatomic, retain) FBSession *session;
-@property (nonatomic, assign) id<FBGraphObjectPagingLoaderDelegate> delegate;
+@property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, strong) FBGraphObjectTableDataSource *dataSource;
+@property (nonatomic, strong) FBSession *session;
+@property (nonatomic, unsafe_unretained) id<FBGraphObjectPagingLoaderDelegate> delegate;
 @property (nonatomic, readonly) FBGraphObjectPagingMode pagingMode;
 @property (nonatomic, readonly) BOOL isResultFromCache;
  

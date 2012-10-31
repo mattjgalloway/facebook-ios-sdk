@@ -48,8 +48,6 @@ static dispatch_once_t g_publishInstallOnceToken;
 }
 
 + (void)setLoggingBehavior:(NSSet *)newValue {
-    [newValue retain];
-    [g_loggingBehavior release];
     g_loggingBehavior = newValue;
 }
 
@@ -135,7 +133,7 @@ static dispatch_once_t g_publishInstallOnceToken;
                                 [installActivity setObject:advertiserID forKey:@"advertiser_id"];
                             }
 
-                            FBRequest *publishRequest = [[[FBRequest alloc] initForPostWithSession:nil graphPath:publishPath graphObject:installActivity] autorelease];
+                            FBRequest *publishRequest = [[FBRequest alloc] initForPostWithSession:nil graphPath:publishPath graphObject:installActivity];
                             [publishRequest startWithCompletionHandler:publishCompletionBlock];
                         } else {
                             // the app has turned off install insights.  prevent future attempts.
@@ -149,7 +147,7 @@ static dispatch_once_t g_publishInstallOnceToken;
             };
 
             NSString *pingPath = [NSString stringWithFormat:FBSupportsAttributionPath, appID, nil];
-            FBRequest *pingRequest = [[[FBRequest alloc] initWithSession:nil graphPath:pingPath] autorelease];
+            FBRequest *pingRequest = [[FBRequest alloc] initWithSession:nil graphPath:pingPath];
             [pingRequest startWithCompletionHandler:pingCompletionBlock];
         }
     } @catch (NSException *ex3) {

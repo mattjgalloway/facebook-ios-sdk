@@ -19,8 +19,8 @@
 
 @interface FBGraphObjectTableSelection() <UITableViewDelegate, FBGraphObjectSelectionQueryDelegate> 
 
-@property (nonatomic, retain) FBGraphObjectTableDataSource *dataSource;
-@property (nonatomic, retain) NSArray *selection;
+@property (nonatomic, strong) FBGraphObjectTableDataSource *dataSource;
+@property (nonatomic, strong) NSArray *selection;
 
 - (void)selectItem:(FBGraphObject *)item
               cell:(UITableViewCell *)cell;
@@ -49,7 +49,6 @@
         
         NSArray *selection = [[NSArray alloc] init];
         self.selection = selection;
-        [selection release];
     }
     
     return self;
@@ -59,10 +58,7 @@
 {
     _dataSource.selectionDelegate = nil;
     
-    [_dataSource release];
-    [_selection release];
 
-    [super dealloc];
 }
 
 - (void)clearSelectionInTableView:(UITableView*)tableView {
@@ -76,7 +72,6 @@
         NSMutableArray *selection = [[NSMutableArray alloc] initWithArray:self.selection];
         [selection addObject:item];
         self.selection = selection;
-        [selection release];
     }
     cell.accessoryType = UITableViewCellAccessoryCheckmark;
     [self selectionChanged];
@@ -90,7 +85,6 @@
         NSMutableArray *selection = [[NSMutableArray alloc] initWithArray:self.selection];
         [selection removeObject:selectedItem];
         self.selection = selection;
-        [selection release];
     }
     cell.accessoryType = UITableViewCellAccessoryNone;
     [self selectionChanged];

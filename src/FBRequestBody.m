@@ -19,7 +19,7 @@
 static NSString *kStringBoundary = @"3i2ndDfv2rTHiSisAbouNdArYfORhtTPEefj3q2f";
 
 @interface FBRequestBody ()
-@property (nonatomic, retain, readonly) NSMutableData *mutableData;
+@property (nonatomic, strong, readonly) NSMutableData *mutableData;
 - (void)appendUTF8:(NSString *)utf8;
 @end
 
@@ -36,11 +36,6 @@ static NSString *kStringBoundary = @"3i2ndDfv2rTHiSisAbouNdArYfORhtTPEefj3q2f";
     return self;
 }
 
-- (void)dealloc
-{
-    [_mutableData release];
-    [super dealloc];
-}
 
 + (NSString *)mimeContentType
 {

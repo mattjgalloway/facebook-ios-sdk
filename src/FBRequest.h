@@ -201,7 +201,7 @@ typedef NSUInteger FBRequestState __attribute__((deprecated));
  parameters.  `NSData` and `UIImage` parameters are added as attachments
  to the HTTP body and referenced by name in the URL and/or JSON.
 */
-@property(nonatomic, retain, readonly) NSMutableDictionary *parameters;
+@property(nonatomic, strong, readonly) NSMutableDictionary *parameters;
 
 /*!
  @abstract
@@ -212,7 +212,7 @@ typedef NSUInteger FBRequestState __attribute__((deprecated));
  the object initiliazation. Make any required modifications prior to
  sending the request.
 */
-@property(nonatomic, retain) FBSession *session;
+@property(nonatomic, strong) FBSession *session;
 
 /*!
  @abstract
@@ -259,7 +259,7 @@ typedef NSUInteger FBRequestState __attribute__((deprecated));
  the object initiliazation. Make any required modifications prior to
  sending the request.
 */
-@property(nonatomic, retain) id<FBGraphObject> graphObject;
+@property(nonatomic, strong) id<FBGraphObject> graphObject;
 
 /*!
  @methodgroup Instance methods

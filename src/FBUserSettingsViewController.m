@@ -24,13 +24,13 @@
 
 @interface FBUserSettingsViewController ()
 
-@property (nonatomic, retain) FBProfilePictureView *profilePicture;
-@property (nonatomic, retain) UIImageView *backgroundImageView;
-@property (nonatomic, retain) UILabel *connectedStateLabel;
-@property (nonatomic, retain) id<FBGraphUser> me;
-@property (nonatomic, retain) UIButton *loginLogoutButton;
+@property (nonatomic, strong) FBProfilePictureView *profilePicture;
+@property (nonatomic, strong) UIImageView *backgroundImageView;
+@property (nonatomic, strong) UILabel *connectedStateLabel;
+@property (nonatomic, strong) id<FBGraphUser> me;
+@property (nonatomic, strong) UIButton *loginLogoutButton;
 @property (nonatomic) BOOL attemptingLogin;
-@property (nonatomic, retain) NSBundle *bundle;
+@property (nonatomic, strong) NSBundle *bundle;
 
 - (void)loginLogoutButtonPressed:(id)sender;
 - (void)sessionStateChanged:(FBSession *)session 
@@ -74,17 +74,6 @@
     return self;
 }
 
-- (void)dealloc {
-    [super dealloc];
-    
-    [_profilePicture release];
-    [_connectedStateLabel release];
-    [_me release];
-    [_loginLogoutButton release];
-    [_permissions release];
-    [_backgroundImageView release];
-    [_bundle release];
-}
 
 #pragma mark View lifecycle
 
@@ -106,15 +95,15 @@
 
     CGRect usableBounds = self.canvasView.bounds;
 
-    self.backgroundImageView = [[[UIImageView alloc] init] autorelease];
+    self.backgroundImageView = [[UIImageView alloc] init];
     self.backgroundImageView.frame = usableBounds;
     self.backgroundImageView.userInteractionEnabled = NO;
     self.backgroundImageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self.canvasView addSubview:self.backgroundImageView];
     [self updateBackgroundImage];
     
-    UIImageView *logo = [[[UIImageView alloc] 
-                         initWithImage:[UIImage imageNamed:@"FBUserSettingsViewResources.bundle/images/facebook-logo.png"]] autorelease];
+    UIImageView *logo = [[UIImageView alloc] 
+                         initWithImage:[UIImage imageNamed:@"FBUserSettingsViewResources.bundle/images/facebook-logo.png"]];
     CGPoint center = CGPointMake(CGRectGetMidX(usableBounds), 68);
     logo.center = center;
     logo.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
@@ -122,7 +111,7 @@
     
     // We want the profile picture control and label to be grouped together when autoresized,
     // so we put them in a subview.
-    UIView *containerView = [[[UIView alloc] init] autorelease];
+    UIView *containerView = [[UIView alloc] init];
     containerView.frame = CGRectMake(0, 
                                      135,
                                      usableBounds.size.width,
@@ -130,14 +119,13 @@
     containerView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
 
     // Add profile picture control
-    self.profilePicture = [[[FBProfilePictureView alloc] initWithProfileID:nil
-                                                        pictureCropping:FBProfilePictureCroppingSquare]
-                           autorelease];
+    self.profilePicture = [[FBProfilePictureView alloc] initWithProfileID:nil
+                                                        pictureCropping:FBProfilePictureCroppingSquare];
     self.profilePicture.frame = CGRectMake(containerView.frame.size.width / 2 - 32, 0, 64, 64);
     [containerView addSubview:self.profilePicture];
 
     // Add connected state/name control
-    self.connectedStateLabel = [[[UILabel alloc] init] autorelease];
+    self.connectedStateLabel = [[UILabel alloc] init];
     self.connectedStateLabel.frame = CGRectMake(0, 
                                                 self.profilePicture.frame.size.height + 14.0,
                                                 containerView.frame.size.width,

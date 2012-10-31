@@ -43,7 +43,7 @@
 // For many test case scenarios, we just need a single session with a set of permissions
 // that can be shared and used by each individual test. For the simple case, this is that
 // session.
-@property (readonly, retain) FBTestSession *defaultTestSession;
+@property (readonly, strong) FBTestSession *defaultTestSession;
 
 - (FBRequestHandler)handlerExpectingSuccessSignaling:(FBTestBlocker*)blocker;
 - (FBRequestHandler)handlerExpectingFailureSignaling:(FBTestBlocker*)blocker; 

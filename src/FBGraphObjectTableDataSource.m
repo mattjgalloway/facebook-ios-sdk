@@ -25,12 +25,12 @@ static const NSInteger kMinimumCountToCollate = 6;
 
 @interface FBGraphObjectTableDataSource ()
 
-@property (nonatomic, retain) NSArray *data;
-@property (nonatomic, retain) NSArray *indexKeys;
-@property (nonatomic, retain) NSDictionary *indexMap;
-@property (nonatomic, retain) NSMutableSet *pendingURLConnections;
+@property (nonatomic, strong) NSArray *data;
+@property (nonatomic, strong) NSArray *indexKeys;
+@property (nonatomic, strong) NSDictionary *indexMap;
+@property (nonatomic, strong) NSMutableSet *pendingURLConnections;
 @property (nonatomic, assign) BOOL expectingMoreGraphObjects;
-@property (nonatomic, retain) UILocalizedIndexedCollation *collation;
+@property (nonatomic, strong) UILocalizedIndexedCollation *collation;
 @property (nonatomic, assign) BOOL showSections;
 
 - (BOOL)filterIncludesItem:(FBGraphObject *)item;
@@ -78,7 +78,6 @@ static const NSInteger kMinimumCountToCollate = 6;
     if (self) {
         NSMutableSet *pendingURLConnections = [[NSMutableSet alloc] init];
         self.pendingURLConnections = pendingURLConnections;
-        [pendingURLConnections release];
         self.expectingMoreGraphObjects = YES;
     }
     
@@ -90,16 +89,7 @@ static const NSInteger kMinimumCountToCollate = 6;
     FBConditionalLog(![_pendingURLConnections count],
                      @"FBGraphObjectTableDataSource pending connection did not retain self");
 
-    [_collation release];
-    [_data release];
-    [_defaultPicture release];
-    [_groupByField release];
-    [_indexKeys release];
-    [_indexMap release];
-    [_pendingURLConnections release];
-    [_sortDescriptors release];
     
-    [super dealloc];
 }
 
 #pragma mark - Public Methods
@@ -127,10 +117,9 @@ static const NSInteger kMinimumCountToCollate = 6;
     NSMutableArray *sortedFields = [[nameSet allObjects] mutableCopy];
     [sortedFields sortUsingSelector:@selector(caseInsensitiveCompare:)];
     
-    [nameSet release];
     
     // Build the comma-separated string
-    NSMutableString *fields = [[[NSMutableString alloc] init] autorelease];
+    NSMutableString *fields = [[NSMutableString alloc] init];
     
     for (NSString *field in sortedFields) {
         if ([fields length]) {
@@ -139,7 +128,6 @@ static const NSInteger kMinimumCountToCollate = 6;
         [fields appendString:field];
     }
     
-    [sortedFields release];
     return fields;
 }
 
@@ -200,8 +188,8 @@ static const NSInteger kMinimumCountToCollate = 6;
 - (void)update
 {
     NSInteger objectsShown = 0;
-    NSMutableDictionary *indexMap = [[[NSMutableDictionary alloc] init] autorelease];
-    NSMutableArray *indexKeys = [[[NSMutableArray alloc] init] autorelease];
+    NSMutableDictionary *indexMap = [[NSMutableDictionary alloc] init];
+    NSMutableArray *indexKeys = [[NSMutableArray alloc] init];
     
     for (FBGraphObject *item in self.data) {
         if (![self filterIncludesItem:item]) {
@@ -213,7 +201,7 @@ static const NSInteger kMinimumCountToCollate = 6;
         NSMutableArray *section = existingSection;
         
         if (!section) {
-            section = [[[NSMutableArray alloc] init] autorelease];
+            section = [[NSMutableArray alloc] init];
         }
         [section addObject:item];
         
@@ -275,9 +263,8 @@ static const NSInteger kMinimumCountToCollate = 6;
     
     if (!cell) {
         cell = [[FBGraphObjectTableCell alloc]
-                initWithStyle:UITableViewCellStyleSubtitle
-                reuseIdentifier:cellKey];
-        [cell autorelease];
+                 initWithStyle:UITableViewCellStyleSubtitle
+                 reuseIdentifier:cellKey];
         
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
     }
@@ -417,10 +404,9 @@ static const NSInteger kMinimumCountToCollate = 6;
             }
         };
         
-        FBURLConnection *connection = [[[FBURLConnection alloc]
+        FBURLConnection *connection = [[FBURLConnection alloc]
                                         initWithURL:[NSURL URLWithString:urlString]
-                                        completionHandler:handler]
-                                       autorelease];
+                                        completionHandler:handler];
         
         [self addOrRemovePendingConnection:connection];
     }

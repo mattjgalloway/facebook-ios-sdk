@@ -42,17 +42,24 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #pragma mark Instance-level lifecycle
 
-- (void)dealloc 
-{   
-    [_defaultTestSession release];
-    [super dealloc];
-}
 
 - (void)setUp
 {
     [super setUp];
 
     pthread_mutex_lock(&mutex);
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString *configFilename = [documentsDirectory stringByAppendingPathComponent:@"FacebookSDK-UnitTestConfig.plist"];
+    NSString *bundleFilename = [[NSBundle bundleForClass:[self class]] pathForResource:@"FacebookSDK-UnitTestConfig" ofType:@"plist"];
+    NSFileManager *fileManager = [[NSFileManager alloc] init];
+    @try {
+        [fileManager copyItemAtPath:bundleFilename toPath:configFilename error:nil];
+    } @catch (NSException *e) {
+        pthread_mutex_unlock(&mutex);
+        @throw;
+    }
     
     if (!mapTestCasesToSessions) {
         mapTestCasesToSessions = [[NSMutableDictionary alloc] init];
@@ -75,7 +82,6 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
     for (FBSession *session in sessions) {
         [session close];
     }
-    [sessions release];
     
     [super tearDown];
 }
@@ -122,7 +128,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 - (FBTestSession *)loginSession:(FBTestSession *)session
 {
-    __block FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
     
     FBSessionStateHandler handler = ^(FBSession *session,
                                        FBSessionState status,
@@ -146,12 +152,11 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
     STAssertNotNil(userID, @"missing userID");
     NSString *graphPath = [NSString stringWithFormat:@"me/friends/%@", userID];
     
-    __block FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
     
-    FBRequest *request = [[[FBRequest alloc] initForPostWithSession:session 
+    FBRequest *request = [[FBRequest alloc] initForPostWithSession:session 
                                                           graphPath:graphPath 
-                                                        graphObject:nil] 
-                          autorelease];
+                                                        graphObject:nil];
     
     [request startWithCompletionHandler:
      ^(FBRequestConnection *connection, id result, NSError *error) {
@@ -183,11 +188,10 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 }
 
 - (void)validateGraphObjectWithId:(NSString*)idString hasProperties:(NSArray*)propertyNames withSession:(FBSession*)session {
-    __block FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
     
-    FBRequest *request = [[[FBRequest alloc] initWithSession:session 
-                                                   graphPath:idString]
-                          autorelease];
+    FBRequest *request = [[FBRequest alloc] initWithSession:session 
+                                                   graphPath:idString];
     
     [request startWithCompletionHandler:
      ^(FBRequestConnection *connection, id result, NSError *error) {
@@ -202,12 +206,11 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 }
 
 - (void)postAndValidateWithSession:(FBSession*)session graphPath:(NSString*)graphPath graphObject:(id)graphObject hasProperties:(NSArray*)propertyNames {
-    __block FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
     
-    FBRequest *request = [[[FBRequest alloc] initForPostWithSession:session 
+    FBRequest *request = [[FBRequest alloc] initForPostWithSession:session 
                                                           graphPath:graphPath 
-                                                        graphObject:graphObject] 
-                          autorelease];
+                                                        graphObject:graphObject];
     
     [request startWithCompletionHandler:
      ^(FBRequestConnection *connection, id result, NSError *error) {
@@ -255,24 +258,21 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
                                                      parameters:nil
                                                      HTTPMethod:nil];
     __block id createdObject = nil;
-    __block FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
     [connection addRequest:getRequest 
          completionHandler:
      ^(FBRequestConnection *connection, id result, NSError *error) {
          STAssertTrue(!error, @"got unexpected error");
          STAssertNotNil(result, @"didn't get expected result");
-         createdObject = [result retain];
+         createdObject = result;
          [blocker signal];
      }];
  
     [connection start];
     [blocker wait];
     
-    [postRequest release];
-    [connection release];
-    [blocker release];
     
-    return [createdObject autorelease];
+    return createdObject;
 }
 
 size_t getPixels(void *info, void *buffer, size_t count) {
@@ -329,7 +329,7 @@ size_t getPixels(void *info, void *buffer, size_t count) {
         STAssertNotNil(result, @"didn't get expected result");
         [blocker signal];
     };
-    return [[handler copy] autorelease];
+    return [handler copy];
 }
 
 - (FBRequestHandler)handlerExpectingFailureSignaling:(FBTestBlocker*)blocker {
@@ -339,7 +339,7 @@ size_t getPixels(void *info, void *buffer, size_t count) {
         STAssertTrue(!result, @"got unexpected result");
         [blocker signal];
     };
-    return [[handler copy] autorelease];
+    return [handler copy];
 }
 
 #pragma mark -

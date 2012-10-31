@@ -38,12 +38,11 @@ static NSString* nameForTestCache()
 {
     CFUUIDRef uuid = CFUUIDCreate(kCFAllocatorDefault);
     NSString *uuidString = 
-        (NSString*)CFUUIDCreateString(kCFAllocatorDefault, uuid);
+        (NSString*)CFBridgingRelease(CFUUIDCreateString(kCFAllocatorDefault, uuid));
 
     CFRelease(uuid);
     NSString *result = [NSString stringWithFormat:@"test_cache-%@",uuidString];
 
-    [uuidString release];
     return result;
 }
 
@@ -196,7 +195,6 @@ static FBCacheIndex* initTempCacheIndex(
     NSString* entry = [cacheIndex fileNameForKey:@"test1"];
     STAssertNil(entry, @"Entry not removed");
 
-    [cacheIndex release];
     [[NSFileManager defaultManager] removeItemAtPath:tempFolder error:NULL];
 }
 
@@ -231,7 +229,6 @@ static FBCacheIndex* initTempCacheIndex(
         @"Disk usage computed incorrectly");
 
     // Now recreate the queue and ensure the disk size is still right
-    [cacheIndex release];
     cacheIndex = [[FBCacheIndex alloc] initWithCacheFolder:tempFolder];
     cacheIndex.delegate = self;
 
@@ -259,7 +256,6 @@ static FBCacheIndex* initTempCacheIndex(
         STAssertEquals(readData.length, fileSize, @"Data length incorrect");
     }
     
-    [cacheIndex release];
     [[NSFileManager defaultManager] removeItemAtPath:tempFolder error:NULL];
 }
 
@@ -312,7 +308,6 @@ static FBCacheIndex* initTempCacheIndex(
     STAssertTrue(
         cacheIndex.currentDiskUsage < numberOfFiles * fileSize / 2, 
         @"Current disk usage incorrect");
-    [cacheIndex release];
     [[NSFileManager defaultManager] removeItemAtPath:tempFolder error:NULL];
 }
 
@@ -374,7 +369,6 @@ static FBCacheIndex* initTempCacheIndex(
         [stringFromFile isEqualToString:dummy], 
         @"Payload doesn't match!");
 
-    [cacheIndex release];
     [[NSFileManager defaultManager] removeItemAtPath:tempFolder error:NULL];
 }
 
@@ -406,7 +400,6 @@ static FBCacheIndex* initTempCacheIndex(
             [blocker signal];
         }
     }];
-    [blocker release];
     blocker = [[FBTestBlocker alloc] init];
     
     FBFriendPickerViewController *vc = [[FBFriendPickerViewController alloc] init];
@@ -426,9 +419,7 @@ static FBCacheIndex* initTempCacheIndex(
     
     [blocker wait];
     
-    [blocker release];
     
-    [connection release];
 }
 
 @end

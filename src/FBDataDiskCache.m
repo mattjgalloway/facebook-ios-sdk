@@ -78,10 +78,6 @@ static NSString *const kAccessTokenKey = @"access_token";
         dispatch_release(_fileQueue);
     }
 
-    [_cacheIndex release];
-    [_dataCachePath release];
-    [_inMemoryCache release];
-    [super dealloc];
 }
 
 + (FBDataDiskCache*)sharedCache

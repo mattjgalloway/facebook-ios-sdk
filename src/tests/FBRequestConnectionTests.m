@@ -35,17 +35,14 @@
     __block FBTestBlocker *blocker1 = [[FBTestBlocker alloc] init];
     __block FBTestBlocker *blocker2 = [[FBTestBlocker alloc] init];
     __block FBTestBlocker *blocker3 = [[FBTestBlocker alloc] init];
-    [[[[FBRequest alloc] initWithSession:self.defaultTestSession graphPath:@"me"] autorelease] startWithCompletionHandler:[self handlerExpectingSuccessSignaling:blocker1]];
-    [[[[FBRequest alloc] initWithSession:self.defaultTestSession graphPath:@"me"] autorelease] startWithCompletionHandler:[self handlerExpectingSuccessSignaling:blocker2]];
-    [[[[FBRequest alloc] initWithSession:self.defaultTestSession graphPath:@"me"] autorelease] startWithCompletionHandler:[self handlerExpectingSuccessSignaling:blocker3]];
+    [[[FBRequest alloc] initWithSession:self.defaultTestSession graphPath:@"me"] startWithCompletionHandler:[self handlerExpectingSuccessSignaling:blocker1]];
+    [[[FBRequest alloc] initWithSession:self.defaultTestSession graphPath:@"me"] startWithCompletionHandler:[self handlerExpectingSuccessSignaling:blocker2]];
+    [[[FBRequest alloc] initWithSession:self.defaultTestSession graphPath:@"me"] startWithCompletionHandler:[self handlerExpectingSuccessSignaling:blocker3]];
     
     [blocker1 wait];
     [blocker2 wait];
     [blocker3 wait];
     
-    [blocker1 release];
-    [blocker2 release];
-    [blocker3 release];
 }
 
 - (void)testWillPiggybackTokenExtensionIfNeeded
@@ -53,7 +50,7 @@
     FBTestSession *session = [self getSessionWithSharedUserWithPermissions:nil];
     session.forceAccessTokenRefresh = YES;
     
-    FBRequest *request = [[[FBRequest alloc] initWithSession:session graphPath:@"me"] autorelease];
+    FBRequest *request = [[FBRequest alloc] initWithSession:session graphPath:@"me"];
     
     FBTestBlocker *blocker = [[FBTestBlocker alloc] init];
     FBRequestConnection *connection = [[FBRequestConnection alloc] init];
@@ -61,12 +58,10 @@
     [connection start];
     
     [blocker wait];
-    [blocker release];
     
     NSArray *requests = [connection performSelector:@selector(requests)];
     STAssertTrue(requests.count == 2, @"didn't piggyback");
     
-    [connection release];
 }
 
 - (void)testWillNotPiggybackIfWouldExceedBatchSize
@@ -78,7 +73,7 @@
     
     const int batchSize = 50;
     for (int i = 0; i < batchSize; ++i) {
-        FBRequest *request = [[[FBRequest alloc] initWithSession:session graphPath:@"me"] autorelease];
+        FBRequest *request = [[FBRequest alloc] initWithSession:session graphPath:@"me"];
         
         // Minimize traffic by just getting our id.
         [request.parameters setObject:@"id" forKey:@"fields"];
@@ -90,14 +85,12 @@
     
     NSArray *requests = [connection performSelector:@selector(requests)];
     STAssertTrue(requests.count == batchSize, @"piggybacked but shouldn't have");
-    [connection release];
 }
 
 - (void)testNoRequests
 {
     FBRequestConnection *connection = [[FBRequestConnection alloc] init];
     STAssertThrows([connection start], @"should throw");
-    [connection release];
 }
 
 - (void)testCachedRequests
@@ -108,7 +101,7 @@
     
     // here we just want to seed the cache, by identifying the cache, and by choosing not to consult the cache
     FBRequestConnection *connection = [[FBRequestConnection alloc] init];    
-    FBRequest *request = [[[FBRequest alloc] initWithSession:session graphPath:@"me"] autorelease];
+    FBRequest *request = [[FBRequest alloc] initWithSession:session graphPath:@"me"];
     [request.parameters setObject:@"id,first_name" forKey:@"fields"];
     [connection addRequest:request completionHandler:[self handlerExpectingSuccessSignaling:blocker]];
     [connection startWithCacheIdentity:@"FBUnitTests"
@@ -118,14 +111,12 @@
     
     STAssertFalse(connection.isResultFromCache, @"Should not have cached, and should have fetched from server");
     
-    [connection release];
-    [blocker release];
     
     __block BOOL completedWithoutBlocking = NO;
     
     // here we expect to complete on the cache, so we will confirm that
     connection = [[FBRequestConnection alloc] init];    
-    request = [[[FBRequest alloc] initWithSession:session graphPath:@"me"] autorelease];
+    request = [[FBRequest alloc] initWithSession:session graphPath:@"me"];
     [request.parameters setObject:@"id,first_name" forKey:@"fields"];
     [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
         STAssertNotNil(result, @"Expected a successful result");
@@ -137,7 +128,6 @@
     // should have completed successfully by here
     STAssertTrue(completedWithoutBlocking, @"Should have called the handler, due to cache hit");
     STAssertTrue(connection.isResultFromCache, @"Should not have fetched from server");
-    [connection release];
 }
 
 - (void)testDelete
@@ -147,13 +137,12 @@
     // 2) two objects are deleted with different approaches, and one object created in the next batch
     // 3) one object is deleted
     // 4) another object is deleted
-    FBTestBlocker *blocker = [[[FBTestBlocker alloc] initWithExpectedSignalCount:3] autorelease];
+    FBTestBlocker *blocker = [[FBTestBlocker alloc] initWithExpectedSignalCount:3];
     
     FBTestSession *session = [self getSessionWithSharedUserWithPermissions:nil];
     
-    FBRequest *request = [[[FBRequest alloc] initWithSession:session
-                                                   graphPath:@"me/feed"]
-                          autorelease];
+    FBRequest *request = [[FBRequest alloc] initWithSession:session
+                                                   graphPath:@"me/feed"];
     
     [request.parameters setObject:@"dummy status"
                            forKey:@"name"];
@@ -176,7 +165,7 @@
     };
     
     // this creates three objects
-    FBRequestConnection *connection = [[[FBRequestConnection alloc] init] autorelease];
+    FBRequestConnection *connection = [[FBRequestConnection alloc] init];
     [connection addRequest:request completionHandler:handler];
     [connection addRequest:request completionHandler:handler];
     [connection addRequest:request completionHandler:handler];
@@ -192,7 +181,7 @@
     
     blocker = [[FBTestBlocker alloc] initWithExpectedSignalCount:3];
     
-    connection = [[[FBRequestConnection alloc] init] autorelease];
+    connection = [[FBRequestConnection alloc] init];
     FBRequest *deleteRequest = [[FBRequest alloc] initWithSession:session
                                                         graphPath:[fbids objectAtIndex:fbids.count-1]
                                                        parameters:nil
@@ -240,15 +229,15 @@
         return;
     }
     
-    blocker = [[[FBTestBlocker alloc] initWithExpectedSignalCount:2] autorelease];
+    blocker = [[FBTestBlocker alloc] initWithExpectedSignalCount:2];
     
     // delete
-    request = [[[FBRequest alloc] initWithSession:session
+    request = [[FBRequest alloc] initWithSession:session
                                         graphPath:[fbids objectAtIndex:fbids.count-1]
                                        parameters:[NSDictionary dictionaryWithObjectsAndKeys:
                                                    @"delete", @"method",
                                                    nil]
-                                       HTTPMethod:nil] autorelease];
+                                       HTTPMethod:nil];
     [request startWithCompletionHandler:
      ^(FBRequestConnection *connection, id result, NSError *error) {
          STAssertNotNil(result, @"should have a result here: Handler 5");
@@ -258,10 +247,10 @@
          [blocker signal];
      }];
     // delete
-    request = [[[FBRequest alloc] initWithSession:session
+    request = [[FBRequest alloc] initWithSession:session
                                         graphPath:[fbids objectAtIndex:fbids.count-1] 
                                        parameters:nil 
-                                       HTTPMethod:@"delete"] autorelease];
+                                       HTTPMethod:@"delete"];
     [request startWithCompletionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
         STAssertNotNil(result, @"should have a result here: Handler 6");
         STAssertNil(error, @"should not have an error here: Handler 6");
