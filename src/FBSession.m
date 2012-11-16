@@ -1031,81 +1031,94 @@ static FBSession *g_activeSession = nil;
                                            // requestAccessToAccountsWithType:options:completion: completes on an
                                            // arbitrary thread; let's process this back on our main thread
                                            dispatch_async( dispatch_get_main_queue(), ^{
-                                               NSString *oauthToken = nil;
-                                               if (granted) {
-                                                   NSArray *fbAccounts = [accountStore accountsWithAccountType:accountType];
-                                                   id account = [fbAccounts objectAtIndex:0];
-                                                   id credential = [account credential];
-                                                   
-                                                   oauthToken = [credential oauthToken];
-                                               }
-                                               
-                                               // initial auth case
-                                               if (!isReauthorize) {
-                                                   if (oauthToken) {
-                                                       _isFacebookLoginToken = YES;
-                                                       _isOSIntegratedFacebookLoginToken = YES;
-                                                       
-                                                       // we received a token just now
-                                                       self.refreshDate = [NSDate date];
-                                                       
-                                                       // set token and date, state transition, and call the handler if there is one
-                                                       [self transitionAndCallHandlerWithState:FBSessionStateOpen
-                                                                                         error:nil
-                                                                                         token:oauthToken
-                                                        // BUG: we need a means for fetching the expiration date of the token
-                                                                                expirationDate:[NSDate distantFuture]
-                                                                                   shouldCache:YES
-                                                                                     loginType:FBSessionLoginTypeSystemAccount];
-                                                   } else if (isUntosedDevice) {
-                                                       // even when OS integrated auth is possible we use native-app/safari
-                                                       // login if the user has not signed on to Facebook via the OS
-                                                       [self authorizeWithPermissions:permissions
-                                                                      defaultAudience:defaultAudience
-                                                                       integratedAuth:NO
-                                                                            FBAppAuth:YES
-                                                                           safariAuth:YES
-                                                                             fallback:YES
-                                                                        isReauthorize:NO];
-                                                   } else {
-                                                       // create an error object with additional info regarding failed login
-                                                       NSError *err = [FBSession errorLoginFailedWithReason:FBErrorLoginFailedReason
-                                                                                                    errorCode:nil
-                                                                                                   innerError:error];
-                                                       
-                                                       // state transition, and call the handler if there is one
-                                                       [self transitionAndCallHandlerWithState:FBSessionStateClosedLoginFailed
-                                                                                         error:err
-                                                                                         token:nil
-                                                                                expirationDate:nil
-                                                                                   shouldCache:NO
-                                                                                     loginType:FBSessionLoginTypeNone];
-                                                   }
-                                               } else { // reauth case
-                                                   if (oauthToken) {
-                                                       // union the requested permissions with the already granted permissions
-                                                       NSMutableSet *set = [NSMutableSet setWithArray:self.permissions];
-                                                       [set addObjectsFromArray:permissions];
-                                                       
-                                                       // complete the operation: success
-                                                       [self completeReauthorizeWithAccessToken:oauthToken
-                                                                                 expirationDate:[NSDate distantFuture]
-                                                                                    permissions:[set allObjects]];
-                                                   } else {
-                                                       // no token in this case implies that the user cancelled the permissions upgrade
-                                                       NSError *error = [FBSession errorLoginFailedWithReason:FBErrorReauthorizeFailedReasonUserCancelled
-                                                                                                    errorCode:nil
-                                                                                                   innerError:nil];
-                                                       // complete the operation: failed
-                                                       [self callReauthorizeHandlerAndClearState:error];
-                                                       
-                                                       // if we made it this far into the reauth case with an untosed device, then
-                                                       // it is time to invalidate the session
-                                                       if (isUntosedDevice) {
-                                                           [self closeAndClearTokenInformation];
+                                               void (^handleToken)(NSString *token) = ^(NSString *oauthToken){
+                                                   // initial auth case
+                                                   if (!isReauthorize) {
+                                                       if (oauthToken) {
+                                                           _isFacebookLoginToken = YES;
+                                                           _isOSIntegratedFacebookLoginToken = YES;
+                                                           
+                                                           // we received a token just now
+                                                           self.refreshDate = [NSDate date];
+                                                           
+                                                           // set token and date, state transition, and call the handler if there is one
+                                                           [self transitionAndCallHandlerWithState:FBSessionStateOpen
+                                                                                             error:nil
+                                                                                             token:oauthToken
+                                                            // BUG: we need a means for fetching the expiration date of the token
+                                                                                    expirationDate:[NSDate distantFuture]
+                                                                                       shouldCache:YES
+                                                                                         loginType:FBSessionLoginTypeSystemAccount];
+                                                       } else if (isUntosedDevice) {
+                                                           // even when OS integrated auth is possible we use native-app/safari
+                                                           // login if the user has not signed on to Facebook via the OS
+                                                           [self authorizeWithPermissions:permissions
+                                                                          defaultAudience:defaultAudience
+                                                                           integratedAuth:NO
+                                                                                FBAppAuth:YES
+                                                                               safariAuth:YES
+                                                                                 fallback:YES
+                                                                            isReauthorize:NO];
+                                                       } else {
+                                                           // create an error object with additional info regarding failed login
+                                                           NSError *err = [FBSession errorLoginFailedWithReason:FBErrorLoginFailedReason
+                                                                                                      errorCode:nil
+                                                                                                     innerError:error];
+                                                           
+                                                           // state transition, and call the handler if there is one
+                                                           [self transitionAndCallHandlerWithState:FBSessionStateClosedLoginFailed
+                                                                                             error:err
+                                                                                             token:nil
+                                                                                    expirationDate:nil
+                                                                                       shouldCache:NO
+                                                                                         loginType:FBSessionLoginTypeNone];
+                                                       }
+                                                   } else { // reauth case
+                                                       if (oauthToken) {
+                                                           // union the requested permissions with the already granted permissions
+                                                           NSMutableSet *set = [NSMutableSet setWithArray:self.permissions];
+                                                           [set addObjectsFromArray:permissions];
+                                                           
+                                                           // complete the operation: success
+                                                           [self completeReauthorizeWithAccessToken:oauthToken
+                                                                                     expirationDate:[NSDate distantFuture]
+                                                                                        permissions:[set allObjects]];
+                                                       } else {
+                                                           // no token in this case implies that the user cancelled the permissions upgrade
+                                                           NSError *error = [FBSession errorLoginFailedWithReason:FBErrorReauthorizeFailedReasonUserCancelled
+                                                                                                        errorCode:nil
+                                                                                                       innerError:nil];
+                                                           // complete the operation: failed
+                                                           [self callReauthorizeHandlerAndClearState:error];
+                                                           
+                                                           // if we made it this far into the reauth case with an untosed device, then
+                                                           // it is time to invalidate the session
+                                                           if (isUntosedDevice) {
+                                                               [self closeAndClearTokenInformation];
+                                                           }
                                                        }
                                                    }
+                                               };
+                                               
+                                               if (granted) {
+                                                   NSArray *fbAccounts = [accountStore accountsWithAccountType:accountType];
+                                                   ACAccount *account = [fbAccounts objectAtIndex:0];
+                                                   [accountStore renewCredentialsForAccount:account
+                                                                                 completion:^(ACAccountCredentialRenewResult renewResult, NSError *error) {
+                                                                                     dispatch_async( dispatch_get_main_queue(), ^{
+                                                                                         NSString *oauthToken = nil;
+                                                                                         if (renewResult == ACAccountCredentialRenewResultRenewed) {
+                                                                                             ACAccount *renewedAccount = [accountStore accountWithIdentifier:account.identifier];
+                                                                                             ACAccountCredential *credential = renewedAccount.credential;
+                                                                                             oauthToken = credential.oauthToken;
+                                                                                         }
+                                                                                         handleToken(oauthToken);
+                                                                                     });
+                                                                                 }];
+                                               } else {
+                                                   handleToken(nil);
                                                }
+                                               
                                            });
                                        }];
 
