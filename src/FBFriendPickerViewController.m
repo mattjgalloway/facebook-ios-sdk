@@ -36,7 +36,8 @@ int const FBRefreshCacheDelaySeconds = 2;
 
 @interface FBFriendPickerViewController () <FBGraphObjectSelectionChangedDelegate, 
                                             FBGraphObjectViewControllerDelegate,
-                                            FBGraphObjectPagingLoaderDelegate>
+                                            FBGraphObjectPagingLoaderDelegate,
+                                            UISearchBarDelegate>
 
 @property (nonatomic, retain) FBGraphObjectTableDataSource *dataSource;
 @property (nonatomic, retain) FBGraphObjectTableSelection *selectionManager;
@@ -63,6 +64,7 @@ int const FBRefreshCacheDelaySeconds = 2;
 @synthesize selectionManager = _selectionManager;
 @synthesize spinner = _spinner;
 @synthesize tableView = _tableView;
+@synthesize searchBar = _searchBar;
 @synthesize userID = _userID;
 @synthesize loader = _loader;
 @synthesize sortOrdering = _sortOrdering;
@@ -135,6 +137,8 @@ int const FBRefreshCacheDelaySeconds = 2;
 }
 
 - (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
     [_loader cancel];
     _loader.delegate = nil;
     [_loader release];
@@ -146,6 +150,7 @@ int const FBRefreshCacheDelaySeconds = 2;
     [_selectionManager release];
     [_spinner release];
     [_tableView release];
+    [_searchBar release];
     [_userID release];
     
     [self removeSessionObserver:_session];
@@ -205,8 +210,22 @@ int const FBRefreshCacheDelaySeconds = 2;
                           withTag:self];
     CGRect bounds = self.canvasView.bounds;
 
+    if (!self.searchBar) {
+        UISearchBar *searchBar = [[[UISearchBar alloc] initWithFrame:CGRectMake(0.0f, 0.0f, bounds.size.width, 44.0f)] autorelease];
+        searchBar.autoresizingMask =
+            UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleBottomMargin;
+        searchBar.delegate = self;
+        searchBar.showsCancelButton = YES;
+        
+        self.searchBar = searchBar;
+        [self.canvasView addSubview:searchBar];
+    }
+
     if (!self.tableView) {
-        UITableView *tableView = [[[UITableView alloc] initWithFrame:bounds] autorelease];
+        CGRect tableViewFrame = bounds;
+        tableViewFrame.origin.y = 44.0f;
+        tableViewFrame.size.height -= 44.0f;
+        UITableView *tableView = [[[UITableView alloc] initWithFrame:tableViewFrame] autorelease];
         tableView.autoresizingMask =
             UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 
@@ -230,6 +249,9 @@ int const FBRefreshCacheDelaySeconds = 2;
     self.tableView.delegate = self.selectionManager;
     [self.dataSource bindTableView:self.tableView];
     self.loader.tableView = self.tableView;
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)viewDidUnload {
@@ -402,14 +424,21 @@ int const FBRefreshCacheDelaySeconds = 2;
 - (BOOL)graphObjectTableDataSource:(FBGraphObjectTableDataSource *)dataSource
                 filterIncludesItem:(id<FBGraphObject>)item {
     id<FBGraphUser> user = (id<FBGraphUser>)item;
-
+    
+    BOOL shouldShow = YES;
+    
     if ([self.delegate
          respondsToSelector:@selector(friendPickerViewController:shouldIncludeUser:)]) {
-        return [(id)self.delegate friendPickerViewController:self
-                                       shouldIncludeUser:user];
-    } else {
-        return YES;
+        shouldShow = [(id)self.delegate friendPickerViewController:self
+                                                 shouldIncludeUser:user];
     }
+    
+    NSString *searchText = [[self.searchBar.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] lowercaseString];
+    if (searchText.length > 0) {
+        shouldShow = ([[[user name] lowercaseString] rangeOfString:searchText].location != NSNotFound);
+    }
+    
+    return shouldShow;
 }
 
 - (NSString *)graphObjectTableDataSource:(FBGraphObjectTableDataSource *)dataSource
@@ -509,6 +538,91 @@ int const FBRefreshCacheDelaySeconds = 2;
 
 - (void)pagingLoaderWasCancelled:(FBGraphObjectPagingLoader*)pagingLoader {
     [self.spinner stopAnimating];
+}
+
+#pragma mark UISearchBarDelegate methods
+
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
+    [self updateView];
+}
+
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    searchBar.text = nil;
+    [searchBar resignFirstResponder];
+    [self updateView];
+}
+
+#pragma mark - Keyboard
+
+- (void)keyboardWillShow:(NSNotification*)note {
+    NSDictionary *userInfo = note.userInfo;
+    CGRect frameEnd = [userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    NSTimeInterval duration = [userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    
+    UIViewAnimationCurve curve = [userInfo[UIKeyboardAnimationCurveUserInfoKey] intValue];
+    UIViewAnimationOptions options = 0;
+    switch (curve) {
+        case UIViewAnimationCurveEaseIn:
+            options |= UIViewAnimationOptionCurveEaseIn;
+            break;
+        case UIViewAnimationCurveEaseOut:
+            options |= UIViewAnimationOptionCurveEaseOut;
+            break;
+        case UIViewAnimationCurveEaseInOut:
+            options |= UIViewAnimationOptionCurveEaseInOut;
+            break;
+        case UIViewAnimationCurveLinear:
+            options |= UIViewAnimationOptionCurveLinear;
+            break;
+    }
+    
+    CGRect frameInView = [self.tableView.superview convertRect:frameEnd fromView:nil];
+    CGRect tableViewFrame = self.tableView.superview.bounds;
+    tableViewFrame.origin.y = CGRectGetMaxY(_searchBar.frame);
+    tableViewFrame.size.height = frameInView.origin.y - tableViewFrame.origin.y;
+    
+    [UIView animateWithDuration:duration
+                          delay:0.0
+                        options:options
+                     animations:^{
+                         _tableView.frame = tableViewFrame;
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+- (void)keyboardWillHide:(NSNotification*)note {
+    NSDictionary *userInfo = note.userInfo;
+    NSTimeInterval duration = [userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    
+    UIViewAnimationCurve curve = [userInfo[UIKeyboardAnimationCurveUserInfoKey] intValue];
+    UIViewAnimationOptions options = 0;
+    switch (curve) {
+        case UIViewAnimationCurveEaseIn:
+            options |= UIViewAnimationOptionCurveEaseIn;
+            break;
+        case UIViewAnimationCurveEaseOut:
+            options |= UIViewAnimationOptionCurveEaseOut;
+            break;
+        case UIViewAnimationCurveEaseInOut:
+            options |= UIViewAnimationOptionCurveEaseInOut;
+            break;
+        case UIViewAnimationCurveLinear:
+            options |= UIViewAnimationOptionCurveLinear;
+            break;
+    }
+    
+    [UIView animateWithDuration:duration
+                          delay:0.0
+                        options:options
+                     animations:^{
+                         CGRect tableViewFrame = self.tableView.superview.bounds;
+                         tableViewFrame.origin.y = CGRectGetMaxY(_searchBar.frame);
+                         tableViewFrame.size.height -= tableViewFrame.origin.y;
+                         _tableView.frame = tableViewFrame;
+                     }
+                     completion:^(BOOL finished) {
+                     }];
 }
 
 @end

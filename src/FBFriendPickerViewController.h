@@ -92,6 +92,12 @@ typedef enum {
 
 /*!
  @abstract
+ Returns an outlet for the search bar managed by the view controller.
+ */
+@property (nonatomic, retain) IBOutlet UISearchBar *searchBar;
+
+/*!
+ @abstract
  A Boolean value that specifies whether multi-select is enabled.
  */
 @property (nonatomic) BOOL allowsMultipleSelection;
