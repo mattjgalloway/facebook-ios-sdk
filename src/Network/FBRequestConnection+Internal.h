@@ -20,8 +20,8 @@
 
 @class FBRequestConnectionRetryManager;
 
-FBSDK_EXTERN NSString *const kGraphURLPrefix;
-FBSDK_EXTERN NSString *const kApiURLPrefix;
+FBSDK_EXTERN NSString *const FBGraphURLPrefix;
+FBSDK_EXTERN NSString *const FBApiURLPrefix;
 
 @interface FBRequestConnection (Internal)
 

@@ -38,21 +38,22 @@
 #import "Facebook.h"
 
 // URL construction constants
-NSString *const kGraphURLPrefix = @"https://graph.";
-NSString *const kGraphVideoURLPrefix = @"https://graph-video.";
-NSString *const kApiURLPrefix = @"https://api.";
-NSString *const kBatchKey = @"batch";
-NSString *const kBatchMethodKey = @"method";
-NSString *const kBatchRelativeURLKey = @"relative_url";
-NSString *const kBatchAttachmentKey = @"attached_files";
-NSString *const kBatchFileNamePrefix = @"file";
-NSString *const kBatchEntryName = @"name";
+NSString *const FBGraphURLPrefix = @"https://graph.";
+NSString *const FBApiURLPrefix = @"https://api.";
 
-NSString *const kAccessTokenKey = @"access_token";
-NSString *const kSDK = @"ios";
-NSString *const kUserAgentBase = @"FBiOSSDK";
+static NSString *const kGraphVideoURLPrefix = @"https://graph-video.";
+static NSString *const kBatchKey = @"batch";
+static NSString *const kBatchMethodKey = @"method";
+static NSString *const kBatchRelativeURLKey = @"relative_url";
+static NSString *const kBatchAttachmentKey = @"attached_files";
+static NSString *const kBatchFileNamePrefix = @"file";
+static NSString *const kBatchEntryName = @"name";
 
-NSString *const kBatchRestMethodBaseURL = @"method/";
+static NSString *const kAccessTokenKey = @"access_token";
+static NSString *const kSDK = @"ios";
+static NSString *const kUserAgentBase = @"FBiOSSDK";
+
+static NSString *const kBatchRestMethodBaseURL = @"method/";
 
 // response object property/key
 NSString *const FBNonJSONResponseProperty = @"FACEBOOK_NON_JSON_RESULT";
@@ -623,7 +624,7 @@ typedef NS_ENUM(NSInteger, FBGraphApiErrorAccessTokenSubcode) {
 
         [attachments release];
 
-        NSString *URLString = [FBUtility buildFacebookUrlWithPre:kGraphURLPrefix post:nil version:_overrideVersionPart];
+        NSString *URLString = [FBUtility buildFacebookUrlWithPre:FBGraphURLPrefix post:nil version:_overrideVersionPart];
         request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:URLString]
                                           cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
                                       timeoutInterval:timeout];
@@ -705,13 +706,13 @@ typedef NS_ENUM(NSInteger, FBGraphApiErrorAccessTokenSubcode) {
         if (forBatch) {
             baseURL = [kBatchRestMethodBaseURL stringByAppendingString:request.restMethod];
         } else {
-            baseURL = [[FBUtility buildFacebookUrlWithPre:kApiURLPrefix post:@"/method/" version:request.versionPart] stringByAppendingString:request.restMethod];
+            baseURL = [[FBUtility buildFacebookUrlWithPre:FBApiURLPrefix post:@"/method/" version:request.versionPart] stringByAppendingString:request.restMethod];
         }
     } else {
         if (forBatch) {
             baseURL = request.graphPath;
         } else {
-            NSString *prefix = kGraphURLPrefix;
+            NSString *prefix = FBGraphURLPrefix;
             // We special case a graph post to <id>/videos and send it to graph-video.facebook.com
             // We only do this for non batch post requests
             if ([[request.HTTPMethod uppercaseString] isEqualToString:@"POST"] &&
