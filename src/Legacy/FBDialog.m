@@ -480,7 +480,22 @@ static BOOL FBUseLegacyLayout(void) {
             if (_frictionlessSettings.enabled) {
                 [self dialogSuccessHandleFrictionlessResponses:url];
             }
-            [self dialogDidSucceed:url];
+            
+            NSString * errorCode = [self getStringFromUrl:[url absoluteString] needle:@"error_code="];
+            NSString * errorStr = [self getStringFromUrl:[url absoluteString] needle:@"error_message="];
+            if (errorCode) {
+                if ([errorCode isEqualToString:@"4201"]) {
+                    [self dialogDidCancel:url];
+                } else {
+                    NSDictionary * errorData = [NSDictionary dictionaryWithObject:errorStr forKey:@"error_msg"];
+                    NSError * error = [NSError errorWithDomain:@"facebookErrDomain"
+                                                          code:[errorCode intValue]
+                                                      userInfo:errorData];
+                    [self dismissWithError:error animated:YES];
+                }
+            } else {
+                [self dialogDidSucceed:url];
+            }
         }
         return NO;
     } else if ([_loadingURL isEqual:url]) {
