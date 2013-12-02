@@ -1215,11 +1215,14 @@ static FBSession *g_activeSession = nil;
                                          permissions:permissions];
                  }
 
-                 // state transition, and call the handler if there is one
-                 [self transitionAndCallHandlerWithState:FBSessionStateClosedLoginFailed
-                                                   error:err
-                                               tokenData:nil
-                                             shouldCache:NO];
+                 [self retryableAuthorizeWithPermissions:permissions
+                                         defaultAudience:defaultAudience
+                                          integratedAuth:NO
+                                               FBAppAuth:YES
+                                              safariAuth:YES
+                                                fallback:YES
+                                           isReauthorize:NO
+                                     canFetchAppSettings:YES];
              }
          } else { // reauth case
              if (oauthToken) {
