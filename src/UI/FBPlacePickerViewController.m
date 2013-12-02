@@ -28,8 +28,8 @@
 NSString *const FBPlacePickerCacheIdentity = @"FBPlacePicker";
 
 static const NSInteger searchTextChangedTimerInterval = 2;
-const NSInteger defaultResultsLimit = 100;
-const NSInteger defaultRadius = 1000; // 1km
+const NSInteger FBDefaultResultsLimit = 100;
+const NSInteger FBDefaultRadius = 1000; // 1km
 
 @interface FBPlacePickerViewController () <FBGraphObjectViewControllerDelegate>
 
@@ -66,8 +66,8 @@ const NSInteger defaultRadius = 1000; // 1km
 - (void)initializePlacePicker
 {
     // Self
-    self.resultsLimit = defaultResultsLimit;
-    self.radiusInMeters = defaultRadius;
+    self.resultsLimit = FBDefaultResultsLimit;
+    self.radiusInMeters = FBDefaultRadius;
 }
 
 - (void)dealloc
